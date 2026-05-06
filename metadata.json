@@ -1,0 +1,6 @@
+{
+  "name": "DebtFlow",
+  "description": "A comprehensive debt management dashboard with bento-grid layout, real-time analytics, and transaction tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["Financial Management", "Data Visualization", "Contact Management"]
+}
