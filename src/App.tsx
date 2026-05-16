@@ -3,13 +3,16 @@ import { Sidebar } from './components/layout/Sidebar';
 import { StatCard } from './components/dashboard/StatCard';
 import { DebtSplitRadial } from './components/dashboard/DebtSplitRadial';
 import { PriorityDebtors } from './components/dashboard/PriorityDebtors';
+import { CollectionMomentum } from './components/dashboard/CollectionMomentum';
+import { PortfolioHealth } from './components/dashboard/PortfolioHealth';
+import { FollowupInsights } from './components/dashboard/FollowupInsights';
 import { DirectoryView } from './components/directory/DirectoryView';
 import { PersonDetailView } from './components/details/PersonDetailView';
 import { LogEntryModal } from './components/transactions/LogEntryModal';
 import { HistoryView } from './components/history/HistoryView';
 import { AddDebtorModal } from './components/directory/AddDebtorModal';
 import { EditDebtorModal } from './components/directory/EditDebtorModal';
-import { Search, IndianRupee, HandCoins, Users as UsersIcon } from 'lucide-react';
+import { Search, IndianRupee } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Debtor, Transaction, TransactionType } from './types';
 import { formatINR } from './lib/utils';
@@ -55,43 +58,43 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({
       className="space-y-5 sm:space-y-8"
     >
       <div>
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1A1A]">Settings</h2>
-        <p className="text-gray-500 font-medium tracking-tight">Keep this tracker free with Google Sheets sync and local backups.</p>
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-glass-main">Settings</h2>
+        <p className="font-medium tracking-tight text-glass-subtle">Keep this tracker free with Google Sheets sync and local backups.</p>
       </div>
 
-      <div className="bg-white/40 backdrop-blur-3xl rounded-[28px] sm:rounded-[40px] border border-white/60 shadow-[0_32px_64px_rgba(0,0,0,0.04)] p-5 sm:p-10 max-w-3xl">
-        <h3 className="text-xl font-bold tracking-tight mb-2">Google Sheets Sync</h3>
-        <p className="text-sm text-gray-500 font-medium mb-8">
+      <div className="glass-surface rounded-[24px] sm:rounded-[32px] p-5 sm:p-10 max-w-3xl">
+        <h3 className="text-xl font-bold tracking-tight mb-2 text-glass-main">Google Sheets Sync</h3>
+        <p className="text-sm font-medium mb-8 text-glass-subtle">
           {sheetsSyncEnabled ? syncStatus : 'Add your Apps Script web app URL in .env to sync across devices.'}
         </p>
 
         <button
           onClick={onSyncNow}
           disabled={!sheetsSyncEnabled}
-          className="mb-10 w-full sm:w-auto px-6 py-4 rounded-[20px] bg-[#3D4E3D] text-[#EFE7D2] text-xs font-bold uppercase tracking-widest shadow-lg shadow-black/10 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          className="glass-button mb-10 w-full sm:w-auto px-6 py-4 rounded-[20px] text-xs font-bold uppercase tracking-widest active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Refresh From Sheet
         </button>
 
-        <h3 className="text-xl font-bold tracking-tight mb-2">Backup</h3>
-        <p className="text-sm text-gray-500 font-medium mb-8">Export a copy before clearing browser data or moving to a new device.</p>
+        <h3 className="text-xl font-bold tracking-tight mb-2 text-glass-main">Backup</h3>
+        <p className="text-sm font-medium mb-8 text-glass-subtle">Export a copy before clearing browser data or moving to a new device.</p>
 
         <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-3 sm:gap-4">
           <button
             onClick={onExport}
-            className="px-6 py-4 rounded-[20px] bg-[#1A1A1A] text-white text-xs font-bold uppercase tracking-widest shadow-lg shadow-black/10 active:scale-95 transition-all"
+            className="glass-button px-6 py-4 rounded-[20px] text-xs font-bold uppercase tracking-widest active:scale-95"
           >
             Export Data
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-4 rounded-[20px] bg-white/70 text-[#3D4E3D] border border-white text-xs font-bold uppercase tracking-widest shadow-sm active:scale-95 transition-all"
+            className="glass-button px-6 py-4 rounded-[20px] text-xs font-bold uppercase tracking-widest active:scale-95"
           >
             Import Data
           </button>
           <button
             onClick={onReset}
-            className="px-6 py-4 rounded-[20px] bg-red-50 text-red-500 text-xs font-bold uppercase tracking-widest active:scale-95 transition-all"
+            className="px-6 py-4 rounded-[20px] bg-red-500/22 text-red-100 border border-red-300/35 text-xs font-bold uppercase tracking-widest active:scale-95 transition-all hover:bg-red-500/35"
           >
             Reset
           </button>
@@ -176,10 +179,64 @@ export default function App() {
     const collectedTillDate = transactions
       .filter(t => t.type === 'PAYMENT')
       .reduce((acc, t) => acc + t.amount, 0);
+    const today = new Date();
+
+    const monthPoints = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(today.getFullYear(), today.getMonth() - (5 - index), 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const label = date.toLocaleDateString('en-US', { month: 'short' });
+      const amount = transactions
+        .filter(transaction => {
+          if (transaction.type !== 'PAYMENT') return false;
+          const paymentDate = new Date(transaction.date);
+          return paymentDate.getFullYear() === date.getFullYear() && paymentDate.getMonth() === date.getMonth();
+        })
+        .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+      return { key, label, amount };
+    });
+
+    const settledCount = debtors.filter(debtor => debtor.totalDebt > 0 && debtor.totalDebt <= debtor.amountPaid).length;
+    const currentCount = debtors.filter(debtor => debtor.status === 'CURRENT' && debtor.totalDebt > debtor.amountPaid).length;
+    const pendingCount = debtors.filter(debtor => debtor.status === 'PENDING' && debtor.totalDebt > debtor.amountPaid).length;
+    const overdueCount = debtors.filter(debtor => debtor.status === 'OVERDUE' && debtor.totalDebt > debtor.amountPaid).length;
+
+    const withOutstanding = debtors
+      .map(debtor => ({ ...debtor, outstanding: Math.max(debtor.totalDebt - debtor.amountPaid, 0) }))
+      .sort((a, b) => b.outstanding - a.outstanding);
+    const topDebtor = withOutstanding[0];
+
+    const debtorsWithPaymentDate = debtors.filter(debtor => debtor.lastPaymentDate);
+    const avgDaysSincePayment = debtorsWithPaymentDate.length
+      ? Math.round(
+          debtorsWithPaymentDate.reduce((sum, debtor) => {
+            const days = Math.max(
+              0,
+              Math.floor((today.getTime() - new Date(debtor.lastPaymentDate as string).getTime()) / (1000 * 60 * 60 * 24))
+            );
+            return sum + days;
+          }, 0) / debtorsWithPaymentDate.length
+        )
+      : 0;
+
+    const paymentsLast30Days = transactions.filter(transaction => {
+      if (transaction.type !== 'PAYMENT') return false;
+      const paymentDate = new Date(transaction.date);
+      return today.getTime() - paymentDate.getTime() <= 1000 * 60 * 60 * 24 * 30;
+    }).length;
     
     return {
       totalOutstanding: totalOut,
-      collectedTillDate
+      collectedTillDate,
+      monthPoints,
+      settledCount,
+      currentCount,
+      pendingCount,
+      overdueCount,
+      topDebtorName: topDebtor?.name || 'No debtors',
+      topDebtorOutstanding: topDebtor?.outstanding || 0,
+      avgDaysSincePayment,
+      paymentsLast30Days,
     };
   }, [debtors, transactions]);
 
@@ -376,6 +433,22 @@ export default function App() {
             />
           </div>
         </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-8 pb-10">
+          <CollectionMomentum points={stats.monthPoints} />
+          <PortfolioHealth
+            currentCount={stats.currentCount}
+            pendingCount={stats.pendingCount}
+            overdueCount={stats.overdueCount}
+            settledCount={stats.settledCount}
+          />
+          <FollowupInsights
+            topDebtorName={stats.topDebtorName}
+            topDebtorOutstanding={stats.topDebtorOutstanding}
+            avgDaysSincePayment={stats.avgDaysSincePayment}
+            paymentsLast30Days={stats.paymentsLast30Days}
+          />
+        </div>
           </motion.div>
         );
       case 'directory':
@@ -408,7 +481,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex w-full h-[100dvh] lg:h-screen flex-col lg:flex-row bg-[#FAFAF8] text-[#1A1A1A] font-sans selection:bg-[#3D4E3D] selection:text-white overflow-hidden">
+    <div className="flex w-full h-[100dvh] lg:h-screen flex-col lg:flex-row font-sans selection:bg-cyan-500/40 selection:text-white overflow-hidden relative">
       <Sidebar 
         activeTab={activeTab === 'detail' ? 'directory' : activeTab} 
         setActiveTab={setActiveTab} 
@@ -417,7 +490,7 @@ export default function App() {
         onAddPerson={() => setIsAddDebtorModalOpen(true)}
       />
 
-      <main className="flex-1 overflow-y-auto px-4 py-5 pb-28 sm:px-6 lg:px-12 lg:py-12 lg:pb-12 flex flex-col relative">
+      <main className="flex-1 overflow-y-auto px-4 py-5 pb-28 sm:px-6 lg:px-12 lg:py-12 lg:pb-12 flex flex-col relative z-10">
         <AnimatePresence mode="wait">
           <motion.div 
             key={activeTab + (selectedDebtor?.id || '')}
@@ -427,22 +500,18 @@ export default function App() {
             className="flex-1 flex flex-col"
           >
             {activeTab === 'dashboard' && (
-              <header className="hidden lg:flex justify-between items-center mb-12 shrink-0">
-                <div>
-                  <h2 className="text-3xl font-bold tracking-tight text-[#1A1A1A]">Account Overview</h2>
-                  <p className="text-gray-400 font-medium tracking-tight mt-1">Status of {debtors.length} key relationships in your network.</p>
-                </div>
+              <header className="hidden lg:flex sticky top-4 z-30 justify-end items-center mb-8 shrink-0">
                 <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="flex bg-white/40 backdrop-blur-2xl p-1.5 border border-white/40 rounded-[28px] shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-black/[0.02]">
+                    <div className="flex glass-nav p-1.5 rounded-[28px]">
                       <div className="relative">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300" size={18} />
                         <input
                           type="text"
                           placeholder="Search debtors..."
                           value={searchQuery}
                           onChange={(event) => setSearchQuery(event.target.value)}
-                          className="w-72 rounded-[22px] bg-white/30 py-3 pl-11 pr-4 text-sm font-bold outline-none transition-all placeholder:text-gray-400 focus:bg-white/60 focus:ring-4 focus:ring-black/5"
+                          className="glass-input w-72 rounded-[22px] py-3 pl-11 pr-4 text-sm font-bold outline-none transition-all"
                         />
                       </div>
                     </div>
