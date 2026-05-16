@@ -3,9 +3,6 @@ import { Sidebar } from './components/layout/Sidebar';
 import { StatCard } from './components/dashboard/StatCard';
 import { DebtSplitRadial } from './components/dashboard/DebtSplitRadial';
 import { PriorityDebtors } from './components/dashboard/PriorityDebtors';
-import { CollectionMomentum } from './components/dashboard/CollectionMomentum';
-import { PortfolioHealth } from './components/dashboard/PortfolioHealth';
-import { FollowupInsights } from './components/dashboard/FollowupInsights';
 import { DirectoryView } from './components/directory/DirectoryView';
 import { PersonDetailView } from './components/details/PersonDetailView';
 import { LogEntryModal } from './components/transactions/LogEntryModal';
@@ -416,37 +413,22 @@ export default function App() {
       {/* Sidebar - Handled in App.tsx wrapper */}
 
         {/* Main Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8 pb-10 flex-1 min-h-[400px]">
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 gap-4 lg:gap-8 pb-8 flex-1 min-h-[400px]">
+          <div>
             <DebtSplitRadial
               collected={stats.collectedTillDate}
               remaining={stats.totalOutstanding}
               totalManaged={totalManaged}
               debtors={debtors}
-            />
-          </div>
-          <div className="lg:col-span-1">
-            <PriorityDebtors 
-              debtors={debtors} 
-              onViewAll={() => setActiveTab('directory')}
-              onSelectDebtor={handleSelectDebtor}
+              monthPoints={stats.monthPoints}
             />
           </div>
         </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-8 pb-10">
-          <CollectionMomentum points={stats.monthPoints} />
-          <PortfolioHealth
-            currentCount={stats.currentCount}
-            pendingCount={stats.pendingCount}
-            overdueCount={stats.overdueCount}
-            settledCount={stats.settledCount}
-          />
-          <FollowupInsights
-            topDebtorName={stats.topDebtorName}
-            topDebtorOutstanding={stats.topDebtorOutstanding}
-            avgDaysSincePayment={stats.avgDaysSincePayment}
-            paymentsLast30Days={stats.paymentsLast30Days}
+        <div className="grid grid-cols-1 pb-10">
+          <PriorityDebtors 
+            debtors={debtors} 
+            onViewAll={() => setActiveTab('directory')}
+            onSelectDebtor={handleSelectDebtor}
           />
         </div>
           </motion.div>

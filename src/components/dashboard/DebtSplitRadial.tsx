@@ -9,6 +9,7 @@ interface DebtSplitRadialProps {
   remaining: number;
   totalManaged: number;
   debtors: Debtor[];
+  monthPoints: { key: string; label: string; amount: number }[];
 }
 
 export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
@@ -16,6 +17,7 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
   remaining,
   totalManaged,
   debtors,
+  monthPoints,
 }) => {
   const safeTotal = Math.max(collected + remaining, 1);
   const collectedPercent = Math.min(100, Math.max(0, (collected / safeTotal) * 100));
@@ -35,9 +37,10 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
   }, [debtors.length]);
 
   const currentDebtor = debtors[currentIndex];
+  const maxMonthlyAmount = Math.max(...monthPoints.map(point => point.amount), 1);
 
   return (
-    <div className="relative overflow-hidden p-5 sm:p-10 rounded-[32px] sm:rounded-[48px] min-h-[420px] sm:min-h-[450px] flex flex-col bg-white/30 backdrop-blur-[40px] border border-white/60 shadow-[0_32px_64px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.5)] ring-1 ring-black/[0.02]">
+    <div className="relative overflow-hidden p-5 sm:p-10 rounded-[32px] sm:rounded-[48px] min-h-[520px] sm:min-h-[560px] flex flex-col bg-white/30 backdrop-blur-[40px] border border-white/60 shadow-[0_32px_64px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.5)] ring-1 ring-black/[0.02]">
       {/* Animated Mesh Gradient Background */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <motion.div
@@ -86,16 +89,16 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
         </div>
       </div>
 
-      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[minmax(240px,1fr)_minmax(220px,0.9fr)] gap-8 items-center flex-1">
+      <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[minmax(280px,1fr)_minmax(220px,0.9fr)] gap-8 items-center">
         <div className="relative mx-auto h-64 w-64 sm:h-72 sm:w-72">
-          <div className="absolute inset-6 rounded-full bg-white/20 border border-white/40 shadow-[inset_0_4px_12px_rgba(255,255,255,0.6),0_20px_40px_rgba(0,0,0,0.05)] backdrop-blur-2xl ring-1 ring-black/[0.01]" />
-          <svg className="absolute inset-0 h-full w-full -rotate-90 drop-shadow-[0_0_15px_rgba(16,185,129,0.1)]" viewBox="0 0 240 240">
+          <div className="absolute inset-6 rounded-full bg-white/25 border border-white/45 shadow-[inset_0_6px_18px_rgba(255,255,255,0.7),0_22px_44px_rgba(0,0,0,0.06)] backdrop-blur-2xl ring-1 ring-black/[0.01]" />
+          <svg className="absolute inset-0 h-full w-full -rotate-90 drop-shadow-[0_0_20px_rgba(16,185,129,0.14)]" viewBox="0 0 240 240">
             <circle
               cx="120"
               cy="120"
               r="92"
               fill="none"
-              stroke="rgba(255,255,255,0.72)"
+              stroke="rgba(255,255,255,0.58)"
               strokeWidth="28"
             />
             <motion.circle
@@ -109,7 +112,7 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
               strokeDasharray={`${collectedDash} ${circumference - collectedDash}`}
               initial={{ strokeDashoffset: circumference }}
               animate={{ strokeDashoffset: 0 }}
-              transition={{ type: "spring", stiffness: 40, damping: 15, delay: 0.2 }}
+              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
             />
             <motion.circle
               cx="120"
@@ -123,7 +126,7 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
               strokeDashoffset={-collectedDash - 8}
               initial={{ opacity: 0, rotate: 8 }}
               animate={{ opacity: 1, rotate: 0 }}
-              transition={{ type: "spring", stiffness: 40, damping: 15, delay: 0.3 }}
+              transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
               style={{ transformOrigin: '120px 120px' }}
             />
             <defs>
@@ -148,7 +151,7 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
             transition={{ type: "spring", stiffness: 60, damping: 12, delay: 0.5 }}
             className="absolute inset-0 flex flex-col items-center justify-center text-center"
           >
-            <p className="text-5xl font-bold tracking-tight tabular-nums text-[#1A1A1A] drop-shadow-sm">
+            <p className="text-5xl font-bold tracking-tight tabular-nums text-[#0f172a] drop-shadow-sm">
               {Math.round(collectedPercent)}<span className="text-2xl ml-0.5 opacity-50">%</span>
             </p>
             <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-gray-400 mt-2">Collected</p>
@@ -226,6 +229,39 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
               <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">No managed accounts yet</p>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="relative z-10 mt-8 liquid-chip rounded-[26px] p-5 sm:p-6">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <h4 className="text-base sm:text-lg font-bold text-glass-main">Collection Momentum</h4>
+            <p className="text-[10px] uppercase tracking-[0.18em] text-glass-subtle font-semibold">Monthly amount collected</p>
+          </div>
+          <div className="text-right">
+            <p className="text-[10px] uppercase tracking-widest text-glass-subtle font-semibold">Latest Month</p>
+            <p className="text-sm font-bold text-glass-main tabular-nums">
+              {monthPoints.length ? formatINR(monthPoints[monthPoints.length - 1].amount) : formatINR(0)}
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-6 gap-2 sm:gap-3 items-end h-44">
+          {monthPoints.map(point => {
+            const height = Math.max((point.amount / maxMonthlyAmount) * 100, point.amount > 0 ? 8 : 0);
+            return (
+              <div key={point.key} className="h-full flex flex-col justify-end gap-2">
+                <div className="h-full flex items-end">
+                  <div
+                    className="w-full rounded-xl border border-white/35 bg-gradient-to-t from-cyan-500/75 via-sky-400/80 to-indigo-300/85 shadow-[0_8px_18px_rgba(56,189,248,0.24)]"
+                    style={{ height: `${height}%` }}
+                    title={`${point.label}: ${formatINR(point.amount)}`}
+                  />
+                </div>
+                <p className="text-[10px] font-bold text-glass-subtle uppercase tracking-wider text-center">{point.label}</p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
