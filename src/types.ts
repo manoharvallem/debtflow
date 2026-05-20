@@ -1,3 +1,10 @@
+export type CandidateStage =
+  | 'REFERRED_TO_HR'
+  | 'INTERVIEW_COMPLETED'
+  | 'HR_ROUND_COMPLETED'
+  | 'BGV_INITIATED'
+  | 'OFFER_RELEASED';
+
 export type TransactionType = 'DEBT' | 'PAYMENT';
 
 export interface Transaction {
@@ -9,6 +16,15 @@ export interface Transaction {
   note?: string;
 }
 
+export interface WorkflowEntry {
+  id: string;
+  debtorId: string;
+  stage: CandidateStage;
+  date: string;
+  note?: string;
+  joiningDate?: string;
+}
+
 export interface Debtor {
   id: string;
   name: string;
@@ -16,11 +32,8 @@ export interface Debtor {
   amountPaid: number;
   lastPaymentDate?: string;
   status: 'CURRENT' | 'PENDING' | 'OVERDUE';
-}
-
-export interface DashboardStats {
-  totalOutstanding: number;
-  collectedToday: number;
-  recoveryRate: number;
-  trendData: { name: string; amount: number }[];
+  currentStage: CandidateStage;
+  lastStageDate?: string;
+  joiningDate?: string;
+  labels: string[];
 }

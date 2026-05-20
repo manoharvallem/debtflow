@@ -1,4 +1,4 @@
-import { Debtor, Transaction } from '../types';
+import { Debtor, Transaction, WorkflowEntry } from '../types';
 
 const WEB_APP_URL = import.meta.env.VITE_SHEETS_WEB_APP_URL || '';
 const API_TOKEN = import.meta.env.VITE_SHEETS_API_TOKEN || '';
@@ -6,14 +6,17 @@ const API_TOKEN = import.meta.env.VITE_SHEETS_API_TOKEN || '';
 export interface SheetData {
   debtors: Debtor[];
   transactions: Transaction[];
+  workflowEntries: WorkflowEntry[];
 }
 
 export interface SheetAction {
-  type: 'replaceAll' | 'upsertDebtor' | 'upsertTransaction' | 'deleteDebtor' | 'reset';
+  type: 'replaceAll' | 'upsertDebtor' | 'upsertTransaction' | 'upsertWorkflowEntry' | 'deleteDebtor' | 'reset';
   debtor?: Debtor;
   transaction?: Transaction;
+  workflowEntry?: WorkflowEntry;
   debtors?: Debtor[];
   transactions?: Transaction[];
+  workflowEntries?: WorkflowEntry[];
   debtorId?: string;
 }
 
