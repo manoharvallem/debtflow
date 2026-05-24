@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, IndianRupee, FileText, Calendar } from 'lucide-react';
+import { X, User, IndianRupee, FileText, Calendar, Tag } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 
@@ -8,6 +8,31 @@ interface AddDebtorModalProps {
   onClose: () => void;
   onSave: (data: { name: string; initialDebt: number; note: string; referredDate: string; labels: string[] }) => void;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 260,
+      damping: 24,
+    },
+  },
+} as const;
 
 export const AddDebtorModal: React.FC<AddDebtorModalProps> = ({ isOpen, onClose, onSave }) => {
   const [name, setName] = useState('');
@@ -38,74 +63,146 @@ export const AddDebtorModal: React.FC<AddDebtorModalProps> = ({ isOpen, onClose,
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-3 sm:p-6">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/35 backdrop-blur-md" />
-          <motion.div initial={{ opacity: 0, scale: 0.92, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: 20 }} className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto liquid-panel rounded-[32px] sm:rounded-[48px] border border-white/80">
-            <div className="relative overflow-hidden rounded-t-[32px] sm:rounded-t-[48px] border-b border-white/50 bg-gradient-to-br from-white/55 via-white/30 to-sky-100/35 p-6 sm:p-10 backdrop-blur-3xl">
-              <div className="absolute top-0 right-0 p-8 text-black/[0.04] pointer-events-none rotate-12">
-                <User size={140} />
+          {/* Frosted deep glass backdrop */}
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            onClick={onClose} 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" 
+          />
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.94, y: 30 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            exit={{ opacity: 0, scale: 0.94, y: 30 }} 
+            transition={{ type: 'spring', duration: 0.5, bounce: 0.15 }}
+            className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto glass-panel-strong rounded-[36px] sm:rounded-[44px] shadow-2xl border border-white/60 focus:outline-none"
+          >
+            {/* Header section with radial light sheen */}
+            <div className="relative overflow-hidden border-b border-white/20 bg-gradient-to-br from-white/40 via-white/10 to-sky-100/20 p-6 sm:p-9 backdrop-blur-3xl rounded-t-[36px] sm:rounded-t-[44px]">
+              <div className="absolute top-0 right-0 p-6 text-[#3D4E3D]/5 pointer-events-none rotate-12">
+                <User size={120} />
               </div>
               <div className="relative z-10">
-                <div className="flex justify-between items-center mb-4 sm:mb-6">
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1A1A]">Onboard Member</h3>
-                  <button onClick={onClose} className="p-3 rounded-2xl text-slate-500 hover:bg-white/30 hover:text-[#1A1A1A] transition-all"><X size={24} /></button>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0f172a] font-display">Onboard Contact</h3>
+                  <button 
+                    type="button"
+                    onClick={onClose} 
+                    className="p-2.5 rounded-xl text-slate-500 hover:bg-white/40 hover:text-[#0f172a] transition-all focus:outline-none"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <p className="font-medium tracking-tight text-glass-subtle">Create a debt profile first, then use the workflow section only as supporting candidate context.</p>
+                <p className="text-xs font-bold text-[#475569]/90 tracking-tight leading-relaxed">
+                  Onboard a new borrower by setting an initial opening debt balance and adding supporting system labels.
+                </p>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 sm:p-10 space-y-5 sm:space-y-8">
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Full Identity</label>
-                <div className="relative group">
-                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                  <input type="text" placeholder="e.g. Vikram Seth" value={name} onChange={(e) => setName(e.target.value)} required className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-sky-500/10 font-bold text-sm outline-none transition-all" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-3">
-                  <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Opening Balance</label>
+            <form onSubmit={handleSubmit} className="p-6 sm:p-9">
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-6 sm:space-y-7"
+              >
+                {/* Identity input */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Full Identity</label>
                   <div className="relative group">
-                    <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                    <input type="number" placeholder="0.00" value={initialDebt} onChange={(e) => setInitialDebt(e.target.value)} className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-sky-500/10 font-bold text-sm outline-none transition-all" />
+                    <User className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                    <input 
+                      type="text" 
+                      placeholder="e.g. Rahul Sharma" 
+                      value={name} 
+                      onChange={(e) => setName(e.target.value)} 
+                      required 
+                      className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                    />
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="space-y-3">
-                  <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Workflow Start Date</label>
+                {/* Debt and Date fields */}
+                <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Opening Balance</label>
+                    <div className="relative group">
+                      <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                      <input 
+                        type="number" 
+                        placeholder="0.00" 
+                        value={initialDebt} 
+                        onChange={(e) => setInitialDebt(e.target.value)} 
+                        className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Onboarding Date</label>
+                    <div className="relative group">
+                      <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                      <input 
+                        type="date" 
+                        value={referredDate} 
+                        onChange={(e) => setReferredDate(e.target.value)} 
+                        required 
+                        className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Memo textbox */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Onboarding Comment</label>
                   <div className="relative group">
-                    <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                    <input type="date" value={referredDate} onChange={(e) => setReferredDate(e.target.value)} required className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-sky-500/10 font-bold text-sm outline-none transition-all" />
+                    <FileText className="absolute left-5 top-4.5 text-[#3D4E3D]" size={16} />
+                    <textarea 
+                      placeholder="Add loan context, agreements, or reference details..." 
+                      value={note} 
+                      onChange={(e) => setNote(e.target.value)} 
+                      rows={2.5} 
+                      className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all resize-none" 
+                    />
                   </div>
-                </div>
-              </div>
+                </motion.div>
 
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Comments</label>
-                <div className="relative group">
-                  <FileText className="absolute left-5 top-5 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                  <textarea placeholder="Add repayment or interview context if needed..." value={note} onChange={(e) => setNote(e.target.value)} rows={3} className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-sky-500/10 font-bold text-sm outline-none transition-all resize-none" />
-                </div>
-              </div>
+                {/* Label tags input */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Labels / Categories</label>
+                  <div className="relative group">
+                    <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                    <input 
+                      type="text" 
+                      placeholder="e.g. business, friend, urgent" 
+                      value={labels} 
+                      onChange={(e) => setLabels(e.target.value)} 
+                      className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                    />
+                  </div>
+                  <p className="text-[9.5px] text-gray-500 font-semibold px-2">Separate multiple labels with commas (e.g. personal, office, priority)</p>
+                </motion.div>
 
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Labels</label>
-                <div className="relative group">
-                  <FileText className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                  <input
-                    type="text"
-                    placeholder="e.g. high-priority, friend, direct"
-                    value={labels}
-                    onChange={(e) => setLabels(e.target.value)}
-                    className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-sky-500/10 font-bold text-sm outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:flex gap-3 sm:gap-4 pt-4">
-                <button type="button" onClick={onClose} className="flex-1 py-4 sm:py-5 rounded-[28px] text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-[#1A1A1A] hover:bg-white/40 transition-all">Cancel</button>
-                <button type="submit" className="flex-[1.5] py-4 sm:py-5 rounded-[28px] text-[10px] font-bold uppercase tracking-[0.2em] bg-[#1A1A1A] text-white shadow-xl shadow-black/10 hover:bg-black transition-all active:scale-95 px-8 sm:px-12">Create Profile</button>
-              </div>
+                {/* Footer buttons */}
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 pb-2 sm:pb-3">
+                  <button 
+                    type="button" 
+                    onClick={onClose} 
+                    className="py-4 rounded-2xl text-[10.5px] font-extrabold uppercase tracking-widest text-[#475569] hover:text-[#0f172a] hover:bg-white/30 transition-all focus:outline-none"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="py-4 rounded-2xl text-[10.5px] font-extrabold uppercase tracking-[0.18em] bg-[#3D4E3D] text-[#EFE7D2] shadow-lg shadow-[#3D4E3D]/30 hover:bg-[#3D4E3D]/95 transition-all active:scale-97 cursor-pointer"
+                  >
+                    Create Profile
+                  </button>
+                </motion.div>
+              </motion.div>
             </form>
           </motion.div>
         </div>

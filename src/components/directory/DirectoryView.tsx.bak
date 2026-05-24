@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Debtor } from '../../types';
 import { Search, Filter, ChevronRight, Pencil } from 'lucide-react';
-import { cn, formatDateOnly, formatINR } from '../../lib/utils';
+import { cn, formatINR } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { CANDIDATE_STAGE_META, getStageProgress } from '../../constants';
 
@@ -17,7 +17,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({ debtors, onSelectD
   const [activeLabel, setActiveLabel] = useState<string>('ALL');
 
   const availableLabels = useMemo(
-    () => ['ALL', ...Array.from(new Set(debtors.flatMap((debtor) => debtor.labels.map((label) => label.trim()).filter(Boolean)))).sort((a, b) => a.localeCompare(b))],
+    () => ['ALL', ...Array.from(new Set(debtors.flatMap((debtor) => debtor.labels))).sort((a, b) => a.localeCompare(b))],
     [debtors],
   );
 
@@ -84,7 +84,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({ debtors, onSelectD
 
                 {debtor.labels.length > 0 && (
                   <div className="mt-4 flex flex-wrap gap-2">
-                    {Array.from(new Set(debtor.labels.map((label) => label.trim()).filter(Boolean))).map((label) => (
+                    {debtor.labels.map((label) => (
                       <span key={label} className="rounded-full bg-white/70 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#3D4E3D] border border-white/70">{label}</span>
                     ))}
                   </div>
@@ -98,9 +98,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({ debtors, onSelectD
 
                 <div className="mt-4 flex items-center justify-between gap-3">
                   <span className={cn('text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full', stageMeta.badgeClassName)}>{stageMeta.shortLabel}</span>
-                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                    {debtor.joiningDate ? `Joining ${formatDateOnly(debtor.joiningDate)}` : debtor.lastStageDate ? `Workflow ${Math.round(getStageProgress(debtor.currentStage))}%` : 'No workflow notes'}
-                  </p>
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{debtor.joiningDate ? `Joining ${debtor.joiningDate}` : debtor.lastStageDate ? `Workflow ${Math.round(getStageProgress(debtor.currentStage))}%` : 'No workflow notes'}</p>
                 </div>
 
                 <div className="mt-4">
@@ -145,7 +143,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({ debtors, onSelectD
                             <span className="text-sm font-bold text-[#1A1A1A] group-hover:text-[#3D4E3D] transition-colors block">{debtor.name}</span>
                             {debtor.labels.length > 0 && (
                               <div className="mt-2 flex flex-wrap gap-2">
-                                {Array.from(new Set(debtor.labels)).map((label) => (
+                                {debtor.labels.map((label) => (
                                   <span key={label} className="rounded-full bg-white/70 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest text-[#3D4E3D] border border-white/70">{label}</span>
                                 ))}
                               </div>
@@ -157,7 +155,7 @@ export const DirectoryView: React.FC<DirectoryViewProps> = ({ debtors, onSelectD
                       <td className="px-8 py-5 text-sm font-medium text-emerald-600">{formatINR(debtor.amountPaid)}</td>
                       <td className="px-8 py-5 text-sm font-bold text-[#1A1A1A]">{formatINR(balance)}</td>
                       <td className="px-8 py-5"><span className={cn('text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full', stageMeta.badgeClassName)}>{stageMeta.shortLabel}</span></td>
-                      <td className="px-8 py-5 text-sm font-medium text-gray-500">{debtor.joiningDate ? formatDateOnly(debtor.joiningDate) : '-'}</td>
+                      <td className="px-8 py-5 text-sm font-medium text-gray-500">{debtor.joiningDate || '-'}</td>
                       <td className="px-8 py-5 min-w-[160px]">
                         <div className="w-full h-1.5 bg-gray-100/50 rounded-full overflow-hidden mb-1.5"><motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} className="h-full bg-[#3D4E3D] rounded-full shadow-[0_0_8px_rgba(61,78,61,0.2)]" /></div>
                         <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight">{Math.round(progress)}% Recovered</span>

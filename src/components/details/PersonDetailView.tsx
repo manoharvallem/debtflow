@@ -1,7 +1,7 @@
 import React from 'react';
 import { Debtor, Transaction, WorkflowEntry } from '../../types';
 import { ArrowLeft, Calendar, CheckCircle2, AlertCircle, ArrowUpCircle, ArrowDownCircle, User, Pencil, Workflow } from 'lucide-react';
-import { cn, formatINR } from '../../lib/utils';
+import { cn, formatDateOnly, formatINR } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
 import { CANDIDATE_STAGE_META, CANDIDATE_STAGE_ORDER, getStageIndex, getStageProgress } from '../../constants';
@@ -16,91 +16,183 @@ interface PersonDetailViewProps {
 }
 
 export const PersonDetailView: React.FC<PersonDetailViewProps> = ({ debtor, transactions, workflowEntries, onBack, onEditDebtor, onOpenWorkflowUpdate }) => {
-  const debtorTransactions = transactions.filter(t => t.debtorId === debtor.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  const personWorkflow = workflowEntries.filter(entry => entry.debtorId === debtor.id).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const debtorTransactions = transactions
+    .filter(t => t.debtorId === debtor.id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+  const personWorkflow = workflowEntries
+    .filter(entry => entry.debtorId === debtor.id)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
   const progress = debtor.totalDebt > 0 ? (debtor.amountPaid / debtor.totalDebt) * 100 : 0;
-  const balance = debtor.totalDebt - debtor.amountPaid;
+  const balance = Math.max(debtor.totalDebt - debtor.amountPaid, 0);
   const workflowProgress = getStageProgress(debtor.currentStage);
   const stageMeta = CANDIDATE_STAGE_META[debtor.currentStage];
   const currentStageIndex = getStageIndex(debtor.currentStage);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-5 sm:space-y-8">
-      <div className="flex items-center justify-between gap-3">
-        <button onClick={onBack} className="flex items-center gap-3 p-3 bg-white/60 backdrop-blur-xl border border-white/80 rounded-2xl text-gray-400 hover:text-[#3D4E3D] hover:bg-white font-bold text-sm transition-all group shadow-sm"><ArrowLeft size={18} className="group-hover:-translate-x-1 transition-transform" />Back</button>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -20 }} 
+      className="space-y-6 sm:space-y-8 font-sans pb-20"
+    >
+      {/* Top action header controls */}
+      <div className="flex items-center justify-between gap-3 z-10 shrink-0">
+        <button 
+          onClick={onBack} 
+          className="flex items-center gap-2 px-4 py-2.5 bg-white/45 backdrop-blur-xl border border-white/50 rounded-2xl text-[#3D4E3D] hover:text-[#0f172a] hover:bg-white/70 font-bold text-xs select-none transition-all group shadow-sm focus:outline-none"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Back List
+        </button>
         <div className="flex items-center gap-2">
-          <button onClick={onOpenWorkflowUpdate} className="flex items-center gap-2 p-3 bg-white/60 backdrop-blur-xl border border-white/80 rounded-2xl text-[#3D4E3D] hover:bg-white font-bold text-sm transition-all shadow-sm"><Workflow size={17} />Update Workflow</button>
-          <button onClick={(event) => onEditDebtor(debtor, event)} className="flex items-center gap-2 p-3 bg-white/60 backdrop-blur-xl border border-white/80 rounded-2xl text-[#3D4E3D] hover:bg-white font-bold text-sm transition-all shadow-sm"><Pencil size={17} />Edit</button>
+          <button 
+            onClick={onOpenWorkflowUpdate} 
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/45 backdrop-blur-xl border border-white/50 rounded-2xl text-[#3D4E3D] hover:text-[#0f172a] hover:bg-white/70 font-bold text-xs select-none transition-all shadow-sm focus:outline-none"
+          >
+            <Workflow size={15} />
+            Update Stage
+          </button>
+          <button 
+            onClick={(event) => onEditDebtor(debtor, event)} 
+            className="flex items-center gap-2 px-4 py-2.5 bg-white/45 backdrop-blur-xl border border-white/50 rounded-2xl text-[#3D4E3D] hover:text-[#0f172a] hover:bg-white/70 font-bold text-xs select-none transition-all shadow-sm focus:outline-none"
+          >
+            <Pencil size={15} />
+            Edit Profile
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+        
+        {/* Left Side: Frosted Profile Summary & Progress card */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white/40 backdrop-blur-3xl p-5 sm:p-10 rounded-[28px] sm:rounded-[40px] shadow-[0_32px_64px_rgba(0,0,0,0.04)] border border-white/60 text-center relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 text-black/[0.02] group-hover:text-black/[0.04] transition-colors pointer-events-none"><User size={160} /></div>
+          <div className="glass-panel p-6 sm:p-9 text-center relative overflow-hidden group">
+            {/* Watermark background icon */}
+            <div className="absolute top-[5%] right-[-10%] p-6 text-[#3D4E3D]/[0.02] group-hover:text-[#3D4E3D]/[0.04] transition-colors pointer-events-none">
+              <User size={180} />
+            </div>
+
             <div className="relative z-10">
-              <div className="w-20 h-20 sm:w-28 sm:h-28 bg-gradient-to-br from-[#3D4E3D] to-[#1A1A1A] text-[#EFE7D2] rounded-[28px] sm:rounded-[36px] flex items-center justify-center font-bold text-2xl sm:text-4xl mx-auto mb-5 sm:mb-8 shadow-2xl shadow-[#3D4E3D]/20 transform transition-transform group-hover:scale-105">{debtor.name.split(' ').map(n => n[0]).join('')}</div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] tracking-tight mb-2 break-words">{debtor.name}</h2>
-              <p className="text-[10px] uppercase tracking-[0.2em] font-bold text-gray-400 mb-6 sm:mb-10">Portfolio ID: AIS-{debtor.id.padStart(4, '0')}</p>
+              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-[#3D4E3D] to-[#202920] text-[#EFE7D2] rounded-[28px] sm:rounded-[32px] flex items-center justify-center font-extrabold text-2xl sm:text-3xl mx-auto mb-5 shadow-lg shadow-[#3D4E3D]/25 transition-transform group-hover:scale-103">
+                {debtor.name.split(' ').map(n => n[0]).join('')}
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] tracking-tight mb-2 break-words leading-tight">{debtor.name}</h2>
+              <p className="text-[9.5px] uppercase tracking-[0.25em] font-extrabold text-slate-400 mb-5">Ledger Port: DF-{debtor.id.slice(-4)}</p>
 
               {debtor.labels.length > 0 && (
-                <div className="flex flex-wrap justify-center gap-2 mb-6">
+                <div className="flex flex-wrap justify-center gap-1.5 mb-5">
                   {debtor.labels.map((label) => (
-                    <span key={label} className="rounded-full bg-white/70 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-[#3D4E3D] border border-white/70">
+                    <span key={label} className="rounded-full bg-white/60 px-3 py-1 text-[9px] font-extrabold uppercase tracking-widest text-[#3D4E3D] border border-white/50">
                       {label}
                     </span>
                   ))}
                 </div>
               )}
 
-              <div className="flex justify-center gap-2 mb-6 sm:mb-10">
-                <span className={cn('px-5 py-2 rounded-2xl text-[10px] font-bold uppercase tracking-widest shadow-sm', balance === 0 ? 'bg-emerald-50 text-emerald-600' : debtor.status === 'OVERDUE' ? 'bg-red-50 text-red-500' : 'bg-[#3D4E3D]/5 text-[#3D4E3D]')}>{balance === 0 ? 'Fully Settled' : debtor.status}</span>
+              <div className="flex justify-center mb-6 sm:mb-8">
+                <span className={cn(
+                  'px-4 py-1.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest shadow-sm border border-transparent', 
+                  balance === 0 
+                    ? 'bg-emerald-500/15 text-emerald-700 border-emerald-300/25' 
+                    : debtor.status === 'OVERDUE' 
+                      ? 'bg-rose-500/15 text-rose-700 border-rose-300/25' 
+                      : 'bg-[#3D4E3D]/10 text-[#3D4E3D] border-[#3D4E3D]/20'
+                )}>
+                  {balance === 0 ? 'Settled Complete' : debtor.status}
+                </span>
               </div>
 
-              <div className="relative w-44 h-44 sm:w-56 sm:h-56 mx-auto mb-6 sm:mb-10">
-                <svg className="w-full h-full transform -rotate-90" viewBox="0 0 224 224">
-                  <circle cx="112" cy="112" r="90" stroke="currentColor" strokeWidth="16" fill="transparent" className="text-gray-100/50" />
-                  <motion.circle initial={{ strokeDashoffset: 565 }} animate={{ strokeDashoffset: 565 - (565 * progress) / 100 }} transition={{ duration: 1.5, ease: 'easeOut' }} cx="112" cy="112" r="90" stroke="currentColor" strokeWidth="16" strokeDasharray="565.4" fill="transparent" className="text-[#3D4E3D]" strokeLinecap="round" />
+              {/* High-end blown-glass radial progress chart */}
+              <div className="relative w-40 h-40 sm:w-48 sm:h-48 mx-auto mb-6 sm:mb-8">
+                <svg className="w-full h-full transform -rotate-90 drop-shadow-[0_4px_16px_rgba(61,78,61,0.1)]" viewBox="0 0 220 220">
+                  <circle cx="110" cy="110" r="88" stroke="rgba(15,23,42,0.05)" strokeWidth="15" fill="transparent" />
+                  <motion.circle 
+                    initial={{ strokeDashoffset: 553 }} 
+                    animate={{ strokeDashoffset: 553 - (553 * progress) / 100 }} 
+                    transition={{ duration: 1.3, ease: 'easeOut' }} 
+                    cx="110" 
+                    cy="110" 
+                    r="88" 
+                    stroke="currentColor" 
+                    strokeWidth="15" 
+                    strokeDasharray="552.92" 
+                    fill="transparent" 
+                    className="text-[#3D4E3D]" 
+                    strokeLinecap="round" 
+                  />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-4xl font-bold tracking-tight">{Math.round(progress)}%</span>
-                  <span className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mt-1 text-center">Recovered</span>
+                  <span className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#0f172a] font-display">{Math.round(progress)}%</span>
+                  <span className="text-[9px] uppercase tracking-[0.18em] text-slate-500 font-extrabold mt-1">Paid off</span>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3 sm:gap-4 text-left p-4 sm:p-6 bg-white/60 backdrop-blur-xl rounded-[24px] sm:rounded-[32px] border border-white/60 shadow-sm">
-                <div><p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-1">Balance</p><p className="text-base sm:text-xl font-bold tabular-nums text-red-400 break-words">{formatINR(balance)}</p></div>
-                <div className="border-l border-gray-100 pl-4"><p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold mb-1">Total</p><p className="text-base sm:text-xl font-bold tabular-nums break-words">{formatINR(debtor.totalDebt)}</p></div>
+              <div className="grid grid-cols-2 gap-3 text-left p-4.5 bg-white/20 backdrop-blur-xl rounded-[24px] border border-white/50 shadow-sm">
+                <div>
+                  <p className="text-[8.5px] uppercase tracking-widest text-slate-500 font-extrabold mb-1">Due Balance</p>
+                  <p className="text-base sm:text-lg font-extrabold tabular-nums text-red-600/95 break-words">{formatINR(balance)}</p>
+                </div>
+                <div className="border-l border-slate-300/30 pl-4">
+                  <p className="text-[8.5px] uppercase tracking-widest text-[#3D4E3D] font-extrabold mb-1">Original Debt</p>
+                  <p className="text-base sm:text-lg font-extrabold tabular-nums text-slate-800 break-words">{formatINR(debtor.totalDebt)}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          <div className="bg-white/40 backdrop-blur-3xl p-5 sm:p-8 rounded-[28px] sm:rounded-[36px] border border-white/60 shadow-[0_20px_48px_rgba(0,0,0,0.04)]">
-            <div className="flex items-center justify-between gap-3 mb-5">
+          {/* Workflow Stage summary card */}
+          <div className="glass-panel p-5 sm:p-7 space-y-4">
+            <div className="flex items-center justify-between gap-3 border-b border-white/10 pb-4">
               <div>
-                <h3 className="text-lg font-bold text-[#1A1A1A] tracking-tight">Candidate Workflow</h3>
-                <p className="text-[10px] uppercase tracking-[0.18em] font-bold text-gray-400 mt-1">Secondary tracking</p>
+                <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] tracking-tight leading-none font-display">Tracking Pipeline</h3>
+                <p className="text-[8.5px] uppercase tracking-[0.2em] font-extrabold text-slate-500 mt-1.5">Candidate Context</p>
               </div>
-              <span className={cn('px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest', stageMeta.badgeClassName)}>{stageMeta.shortLabel}</span>
+              <span className={cn('px-3 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-widest', stageMeta.badgeClassName)}>
+                {stageMeta.shortLabel}
+              </span>
             </div>
-            <div className="space-y-3 mb-5">
-              <div className="flex items-center justify-between gap-3"><p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Current Stage</p><p className="text-sm font-bold text-[#1A1A1A]">{stageMeta.label}</p></div>
-              <div className="flex items-center justify-between gap-3"><p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Last Update</p><p className="text-sm font-bold text-[#1A1A1A]">{debtor.lastStageDate || '-'}</p></div>
-              <div className="flex items-center justify-between gap-3"><p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Joining Date</p><p className="text-sm font-bold text-[#1A1A1A]">{debtor.joiningDate || '-'}</p></div>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-extrabold">Active Stage</p>
+                <p className="font-extrabold text-[#0f172a] text-right">{stageMeta.label}</p>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[9px] uppercase tracking-widest text-slate-400 font-extrabold">Last Modified</p>
+                <p className="font-extrabold text-slate-750 text-right">{formatDateOnly(debtor.lastStageDate) || '-'}</p>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-[9px] uppercase tracking-widest text-[#3D4E3D] font-extrabold">Date of Joining</p>
+                <p className="font-extrabold text-[#3D4E3D] text-right">{formatDateOnly(debtor.joiningDate) || '-'}</p>
+              </div>
             </div>
-            <div className="h-2 rounded-full bg-gray-100/80 overflow-hidden mb-3"><motion.div initial={{ width: 0 }} animate={{ width: `${workflowProgress}%` }} className={cn('h-full rounded-full', stageMeta.accentClassName)} /></div>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-5">{Math.round(workflowProgress)}% Through Workflow</p>
-            <div className="space-y-3">
-              {CANDIDATE_STAGE_ORDER.map((stage, index) => {
+
+            <div className="pt-2">
+              <div className="h-1.5 rounded-full bg-gray-200/50 overflow-hidden mb-2">
+                <motion.div initial={{ width: 0 }} animate={{ width: `${workflowProgress}%` }} className={cn('h-full rounded-full', stageMeta.accentClassName)} />
+              </div>
+              <p className="text-[9px] font-extrabold uppercase tracking-widest text-slate-500">{Math.round(workflowProgress)}% process pipeline completed</p>
+            </div>
+
+            {/* Stage tracker visualization list */}
+            <div className="space-y-2.5 pt-3 border-t border-white/10">
+              {CANDIDATE_STAGE_ORDER.map((stage, sIdx) => {
                 const meta = CANDIDATE_STAGE_META[stage];
-                const isComplete = index < currentStageIndex || (debtor.currentStage === 'OFFER_RELEASED' && index <= currentStageIndex);
-                const isCurrent = index === currentStageIndex;
+                const isComplete = sIdx < currentStageIndex || (debtor.currentStage === 'OFFER_RELEASED' && sIdx <= currentStageIndex);
+                const isCurrent = sIdx === currentStageIndex;
                 return (
                   <div key={stage} className="flex items-center gap-3">
-                    <span className={cn('h-2.5 w-2.5 rounded-full shrink-0', isCurrent || isComplete ? meta.accentClassName : 'bg-gray-200')} />
+                    <span className={cn('h-2.5 w-2.5 rounded-full shrink-0 outline-4 outline-transparent outline-offset-1', isCurrent || isComplete ? meta.accentClassName : 'bg-slate-300/80')} />
                     <div className="flex items-center justify-between gap-3 flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-[#1A1A1A] truncate">{meta.label}</p>
-                      <span className={cn('text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full', isCurrent || isComplete ? meta.badgeClassName : 'bg-slate-100 text-slate-400')}>{isCurrent ? 'Current' : isComplete ? 'Done' : 'Pending'}</span>
+                      <p className={cn('text-xs font-bold truncate', isCurrent ? 'text-[#0f172a] font-extrabold' : 'text-slate-500')}>{meta.label}</p>
+                      <span className={cn(
+                        'text-[8px] font-extrabold uppercase tracking-widest px-2 py-0.5 rounded-full whitespace-nowrap', 
+                        isCurrent || isComplete ? meta.badgeClassName : 'bg-white/20 text-slate-400'
+                      )}>
+                        {isCurrent ? 'Active' : isComplete ? 'Complete' : 'Pending'}
+                      </span>
                     </div>
                   </div>
                 );
@@ -109,85 +201,127 @@ export const PersonDetailView: React.FC<PersonDetailViewProps> = ({ debtor, tran
           </div>
         </div>
 
+        {/* Right Side: Ledger Logs and Workflow comments */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white/40 backdrop-blur-3xl p-5 sm:p-10 rounded-[28px] sm:rounded-[40px] shadow-[0_32px_64px_rgba(0,0,0,0.04)] border border-white/60 flex flex-col min-h-[420px] sm:min-h-[600px]">
-            <div className="flex justify-between items-center mb-6 sm:mb-12">
+          <div className="glass-panel p-6 sm:p-9 flex flex-col min-h-[440px] sm:min-h-[560px]">
+            <div className="flex justify-between items-center mb-6 sm:mb-10 shrink-0 border-b border-white/15 pb-4">
               <div>
-                <h3 className="text-xl sm:text-2xl font-bold text-[#1A1A1A] tracking-tight">Activity Log</h3>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1 text-center">Chronological audit trail</p>
+                <h3 className="text-xl font-extrabold text-[#0f172a] tracking-tight font-display">Ledger Movements</h3>
+                <p className="text-[9px] text-gray-400 font-extrabold uppercase tracking-[0.25em] mt-1">Movement record history</p>
               </div>
-              <div className="bg-white/80 p-2 rounded-2xl shadow-sm border border-transparent hover:border-white transition-all cursor-pointer"><Calendar size={20} className="text-gray-400" /></div>
+              <div className="bg-white/50 p-2.5 rounded-xl shadow-sm border border-transparent hover:border-white/10 select-none">
+                <Calendar size={16} className="text-[#3D4E3D]" />
+              </div>
             </div>
 
-            <div className="relative space-y-6 sm:space-y-10 flex-1">
+            {/* Transaction feed timeline */}
+            <div className="relative space-y-5 flex-1 overflowing-timeline overflow-y-auto max-h-[460px] pr-1">
               {debtorTransactions.length > 0 ? (
-                <div className="space-y-6">
-                  {debtorTransactions.map((tx, idx) => (
-                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }} key={tx.id} className="group flex items-start gap-4 sm:gap-6 p-4 sm:p-6 bg-white/60 backdrop-blur-xl rounded-[24px] sm:rounded-[32px] border border-white/40 hover:bg-white hover:scale-[1.01] transition-all shadow-sm">
-                      <div className={cn('flex items-center justify-center w-11 h-11 sm:w-14 sm:h-14 rounded-2xl sm:rounded-3xl shrink-0 shadow-sm border border-white transition-transform group-hover:rotate-3', tx.type === 'PAYMENT' ? 'bg-emerald-50 text-emerald-600' : 'bg-[#1A1A1A] text-white shadow-xl shadow-black/10')}>
-                        {tx.type === 'PAYMENT' ? <ArrowDownCircle size={24} /> : <ArrowUpCircle size={24} />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-2">
-                          <h4 className="font-bold text-[#1A1A1A] tracking-tight">{tx.type === 'PAYMENT' ? 'Instalment Received' : 'Balance Adjustments'}</h4>
-                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{format(new Date(tx.date), 'MMM dd, yyyy')}</span>
+                <div className="space-y-4">
+                  {debtorTransactions.map((tx, idx) => {
+                    const isPayment = tx.type === 'PAYMENT';
+                    return (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -16 }} 
+                        animate={{ opacity: 1, x: 0 }} 
+                        transition={{ delay: Math.min(idx * 0.04, 0.4) }} 
+                        key={tx.id} 
+                        className="group flex items-start gap-4 p-4.5 bg-white/20 backdrop-blur-xl rounded-[20px] sm:rounded-[24px] border border-white/30 hover:bg-white/45 hover:scale-[1.01] transition-all shadow-sm"
+                      >
+                        <div className={cn(
+                          'flex items-center justify-center w-11 h-11 rounded-2xl shrink-0 border border-white/20 shadow-sm transition-transform group-hover:rotate-12', 
+                          isPayment 
+                            ? 'bg-emerald-500/10 text-emerald-700' 
+                            : 'bg-[#1A1A1A] text-[#efede4]'
+                        )}>
+                          {isPayment ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
                         </div>
-                        <p className="text-sm text-gray-400 font-medium line-clamp-1 mb-4">{tx.note || 'Regular ledger entry'}</p>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                          <span className={cn('text-xl font-bold tracking-tight tabular-nums', tx.type === 'PAYMENT' ? 'text-emerald-600' : 'text-[#1A1A1A]')}>{tx.type === 'PAYMENT' ? '-' : '+'}{formatINR(tx.amount)}</span>
-                          <div className="flex items-center gap-1.5 px-3 py-1 bg-white/80 rounded-full border border-gray-50 shadow-sm"><CheckCircle2 size={12} className="text-emerald-500" /><span className="text-[9px] font-bold text-gray-400 uppercase">Verified</span></div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-1">
+                            <h4 className="font-extrabold text-[#0f172a] text-sm tracking-tight leading-tight">
+                              {isPayment ? 'Instalment Received' : 'Balance Added'}
+                            </h4>
+                            <span className="text-[9px] font-extrabold text-slate-400 uppercase tracking-widest">
+                              {format(new Date(tx.date), 'dd - MMM - yy')}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 font-semibold line-clamp-2 mb-3">
+                            {tx.note || 'Regular ledger ledger entry.'}
+                          </p>
+                          <div className="flex items-center justify-between gap-4 border-t border-slate-300/10 pt-2.5">
+                            <span className={cn(
+                              'text-base font-extrabold tracking-tight tabular-nums', 
+                              isPayment ? 'text-emerald-700' : 'text-[#0f172a]'
+                            )}>
+                              {isPayment ? '-' : '+'}{formatINR(tx.amount)}
+                            </span>
+                            <div className="flex items-center gap-1 px-2.5 py-0.5 bg-white/70 rounded-full border border-slate-200/50 shadow-xs">
+                              <CheckCircle2 size={10} className="text-emerald-500" />
+                              <span className="text-[8.5px] font-extrabold text-[#3D4E3D] uppercase">Verified</span>
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400/50 py-20">
-                  <div className="p-8 bg-gray-50 rounded-full mb-6 border border-dashed border-gray-200"><AlertCircle size={40} className="text-gray-300" /></div>
-                  <p className="font-bold text-lg text-gray-300">Quiet periods are rare</p>
-                  <p className="text-xs font-bold uppercase tracking-widest mt-1">No transactions recorded yet</p>
+                <div className="flex flex-col items-center justify-center h-full text-center py-16">
+                  <div className="p-7 bg-white/40 rounded-full mb-4 border border-dashed border-slate-300/40">
+                    <AlertCircle size={32} className="text-slate-400" />
+                  </div>
+                  <p className="font-extrabold text-slate-800 text-sm">Clear balances, quiet history</p>
+                  <p className="text-[9.5px] font-bold uppercase tracking-widest text-slate-400 mt-1">No transaction statements recorded yet.</p>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="bg-white/40 backdrop-blur-3xl p-5 sm:p-8 rounded-[28px] sm:rounded-[36px] border border-white/60 shadow-[0_20px_48px_rgba(0,0,0,0.04)]">
-            <div className="flex justify-between items-center mb-6">
-              <div>
-                <h3 className="text-lg sm:text-xl font-bold text-[#1A1A1A] tracking-tight">Workflow Notes</h3>
-                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Candidate context</p>
-              </div>
+          {/* Workflow Notes logs */}
+          <div className="glass-panel p-5 sm:p-7">
+            <div className="border-b border-white/10 pb-3 mb-4">
+              <h3 className="text-base sm:text-lg font-extrabold text-[#0f172a] tracking-tight font-display">Notes & Recruitment Logs</h3>
+              <p className="text-[8.5px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Stage movement notes</p>
             </div>
 
             {personWorkflow.length > 0 ? (
-              <div className="space-y-4">
+              <div className="space-y-3.5">
                 {personWorkflow.map((entry) => {
                   const meta = CANDIDATE_STAGE_META[entry.stage];
                   return (
-                    <div key={entry.id} className="rounded-[24px] border border-white/60 bg-white/55 p-4 shadow-sm">
+                    <div key={entry.id} className="rounded-[20px] border border-white/40 bg-white/20 p-4 shadow-xs">
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm font-bold text-[#1A1A1A]">{meta.label}</p>
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mt-1">{format(new Date(entry.date), 'MMM dd, yyyy')}</p>
+                          <p className="text-sm font-extrabold text-[#0f172a] leading-tight">{meta.label}</p>
+                          <p className="text-[9px] font-extrabold uppercase tracking-widest text-gray-400 mt-1">
+                            {format(new Date(entry.date), 'dd - MMM - yy')}
+                          </p>
                         </div>
-                        <span className={cn('px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest', meta.badgeClassName)}>{meta.shortLabel}</span>
+                        <span className={cn('px-2.5 py-1 rounded-full text-[8.5px] font-extrabold uppercase tracking-widest whitespace-nowrap', meta.badgeClassName)}>
+                          {meta.shortLabel}
+                        </span>
                       </div>
-                      <p className="mt-3 text-sm text-gray-500">{entry.note || 'No comments added for this workflow stage.'}</p>
+                      <p className="mt-3.5 text-xs text-slate-600 font-semibold leading-relaxed">
+                        {entry.note || 'No custom notes provided for this recruitment milestone.'}
+                      </p>
                       {entry.joiningDate && (
-                        <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">Joining Date: {entry.joiningDate}</p>
+                        <p className="mt-2.5 text-[9px] font-extrabold uppercase tracking-widest text-emerald-800 bg-emerald-500/10 px-2.5 py-1 rounded-md w-fit">
+                          Confirmed Joining: {formatDateOnly(entry.joiningDate)}
+                        </p>
                       )}
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <div className="rounded-[24px] border border-dashed border-gray-200 bg-white/35 p-8 text-center">
-                <p className="font-bold text-gray-400">No workflow updates yet</p>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-gray-300 mt-1">Use Update Workflow to start tracking rounds</p>
+              <div className="rounded-[24px] border border-dashed border-slate-300/50 bg-white/15 p-8 text-center">
+                <p className="font-extrabold text-slate-700 text-sm">No stage events recorded.</p>
+                <p className="text-[9px] font-extrabold uppercase tracking-widest text-[#3D4E3D]/70 mt-1">Click "Update Stage" to log interview feedback dates.</p>
               </div>
             )}
           </div>
         </div>
+
       </div>
     </motion.div>
   );

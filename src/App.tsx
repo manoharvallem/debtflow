@@ -11,6 +11,7 @@ import { EditDebtorModal } from './components/directory/EditDebtorModal';
 import { WorkflowUpdateModal } from './components/transactions/WorkflowUpdateModal';
 import { Search, IndianRupee } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { format } from 'date-fns';
 import { CandidateStage, Debtor, Transaction, TransactionType, WorkflowEntry } from './types';
 import { CANDIDATE_STAGE_META, CANDIDATE_STAGE_ORDER } from './constants';
 import { formatINR } from './lib/utils';
@@ -186,7 +187,7 @@ export default function App() {
   const [workflowEntries, setWorkflowEntries] = useState<WorkflowEntry[]>(() => loadStoredList(STORAGE_KEYS.workflowEntries, []).map(migrateWorkflowEntry).filter(Boolean) as WorkflowEntry[]);
   const [selectedDebtor, setSelectedDebtor] = useState<Debtor | null>(null);
   const [syncStatus, setSyncStatus] = useState(() => (
-    isSheetsSyncConfigured() ? 'Google Sheets sync is ready.' : 'Google Sheets sync is not configured.'
+    isSheetsSyncConfigured() ? 'Spreadsheet Sync Connected.' : 'Local tracker sandbox.'
   ));
   const sheetsSyncEnabled = isSheetsSyncConfigured();
 
@@ -210,21 +211,19 @@ export default function App() {
   const pullFromSheets = async () => {
     if (!sheetsSyncEnabled) return;
     try {
-      setSyncStatus('Reading latest data from Google Sheets...');
+      setSyncStatus('Retrieving latest spreadsheet records...');
       const data = await readSheetData();
       const nextSheetDebtors = data.debtors.map(migrateDebtor);
       const mergedDebtors = mergeSheetDebtorsWithLocal(nextSheetDebtors, debtors);
       setDebtors(mergedDebtors);
-      setTransactions(data.transactions.map(migrateTransaction).filter(Boolean) as Transaction[]);
+      setTransactions(data.transactions.map(t => migrateTransaction(t)).filter(Boolean) as Transaction[]);
       if (Array.isArray(data.workflowEntries)) {
         setWorkflowEntries(data.workflowEntries.map(migrateWorkflowEntry).filter(Boolean) as WorkflowEntry[]);
       }
       setSelectedDebtor(prev => prev && mergedDebtors.some(d => d.id === prev.id) ? prev : null);
-      setSyncStatus(Array.isArray(data.workflowEntries)
-        ? `Synced from Google Sheets at ${new Date().toLocaleTimeString()}.`
-        : 'Financial data synced. Workflow is still local because the deployed Apps Script is using the old schema.');
+      setSyncStatus(`Synchronized successfully at ${new Date().toLocaleTimeString()}.`);
     } catch (error) {
-      setSyncStatus(error instanceof Error ? error.message : 'Google Sheets sync failed.');
+      setSyncStatus(error instanceof Error ? error.message : 'Google Sheets operation failed.');
     }
   };
 
@@ -235,9 +234,9 @@ export default function App() {
   const syncAction = async (action: Parameters<typeof postSheetAction>[0]) => {
     if (!sheetsSyncEnabled) return;
     try {
-      setSyncStatus('Saving to Google Sheets...');
+      setSyncStatus('Syncing values to spreadsheet...');
       await postSheetAction(action);
-      setSyncStatus(`Saved to Google Sheets at ${new Date().toLocaleTimeString()}.`);
+      setSyncStatus(`Saved offline copy at ${new Date().toLocaleTimeString()}.`);
     } catch (error) {
       setSyncStatus(error instanceof Error ? error.message : 'Google Sheets save failed.');
     }
@@ -255,7 +254,7 @@ export default function App() {
     const monthPoints = Array.from({ length: 6 }, (_, index) => {
       const date = new Date(today.getFullYear(), today.getMonth() - (5 - index), 1);
       const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-      const label = date.toLocaleDateString('en-US', { month: 'short' });
+      const label = format(date, 'MMM');
       const amount = transactions
         .filter(transaction => {
           if (transaction.type !== 'PAYMENT') return false;

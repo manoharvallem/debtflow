@@ -142,7 +142,6 @@ function deleteRowsByColumn(sheetName, columnName, value) {
   
   const values = sheet.getRange(1, columnIndex, sheet.getLastRow(), 1).getValues();
   for (let row = sheet.getLastRow(); row >= 2; row -= 1) {
-    if (String(sheet.getRange(row, columnIndex).getValue()) === value) sheet.deleteRow(row);
     if (String(values[row - 1][0]) === value) sheet.deleteRow(row);
   }
 }

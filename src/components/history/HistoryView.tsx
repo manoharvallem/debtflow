@@ -23,7 +23,10 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ transactions, debtors 
     if (searchTerm) {
       list = list.filter(t => {
         const debtor = debtors.find(d => d.id === t.debtorId);
-        return debtor?.name.toLowerCase().includes(searchTerm.toLowerCase()) || t.note?.toLowerCase().includes(searchTerm.toLowerCase());
+        return (
+          debtor?.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+          t.note?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
       });
     }
 
@@ -57,81 +60,177 @@ export const HistoryView: React.FC<HistoryViewProps> = ({ transactions, debtors 
   };
 
   const SortIcon = ({ field }: { field: SortField }) => sortField !== field
-    ? <ArrowUpDown size={14} className="text-gray-300" />
-    : <ChevronDown size={14} className={cn('transition-transform duration-200', sortOrder === 'asc' ? 'rotate-180' : 'rotate-0')} />;
+    ? <ArrowUpDown size={12} className="text-slate-400" />
+    : <ChevronDown size={12} className={cn('text-[#3D4E3D] transition-transform duration-200', sortOrder === 'asc' ? 'rotate-180' : 'rotate-0')} />;
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="space-y-5 sm:space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      exit={{ opacity: 0, y: -20 }} 
+      className="space-y-6 sm:space-y-8 font-sans pb-20"
+    >
+      {/* Search Header layout */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6 z-10 shrink-0">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1A1A]">Payment History</h2>
-          <p className="text-gray-500 font-medium tracking-tight">Full audit trail of all financial movements in your network.</p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0f172a] font-display">Ledger History</h2>
+          <p className="text-gray-500 font-medium tracking-tight text-sm">Full audit trail of all financial movements across active profiles.</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <div className="relative flex-1 md:flex-none">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input type="text" placeholder="Search history..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-12 pr-6 py-3 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.03)] focus:ring-2 ring-[#3D4E3D]/10 transition-all font-medium text-sm w-full md:w-64" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#3D4E3D]/80" size={16} />
+            <input 
+              type="text" 
+              placeholder="Search statements..." 
+              value={searchTerm} 
+              onChange={(e) => setSearchTerm(e.target.value)} 
+              className="pl-11 pr-5 py-3 hover:bg-white/50 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm focus:ring-4 focus:ring-[#3D4E3D]/5 w-full md:w-64 text-sm font-bold text-[#0f172a] outline-none transition-all" 
+            />
           </div>
-          <button className="p-3 bg-white/60 backdrop-blur-xl rounded-2xl border border-white/40 shadow-[0_8px_32px_rgba(0,0,0,0.03)] text-gray-500 hover:bg-white transition-all"><Filter size={20} /></button>
+          <button type="button" className="p-3 bg-white/40 backdrop-blur-xl rounded-2xl border border-white/40 shadow-sm text-[#3D4E3D] hover:bg-white/60 transition-all focus:outline-none">
+            <Filter size={18} />
+          </button>
         </div>
       </div>
 
-      <div className="md:hidden space-y-3">
+      {/* Mobile Feed */}
+      <div className="md:hidden space-y-4">
         <AnimatePresence mode="popLayout">
           {sortedTransactions.map((tx) => {
             const debtor = debtors.find(d => d.id === tx.debtorId);
+            const isPayment = tx.type === 'PAYMENT';
             return (
-              <motion.div layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} key={tx.id} className="rounded-[26px] border border-white/60 bg-white/55 p-4 shadow-[0_18px_44px_rgba(0,0,0,0.04)] backdrop-blur-2xl">
+              <motion.div 
+                layout 
+                initial={{ opacity: 0, y: 12 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0 }} 
+                key={tx.id} 
+                className="rounded-[28px] border border-white/50 bg-white/35 p-5 shadow-sm backdrop-blur-2xl"
+              >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className={cn('h-11 w-11 shrink-0 rounded-2xl flex items-center justify-center border border-white', tx.type === 'PAYMENT' ? 'bg-emerald-50 text-emerald-600' : 'bg-[#1A1A1A] text-white')}>
-                      {tx.type === 'PAYMENT' ? <ArrowDownCircle size={22} /> : <ArrowUpCircle size={22} />}
+                    <div className={cn(
+                      'h-10 w-10 shrink-0 rounded-2xl flex items-center justify-center border border-white/40', 
+                      isPayment ? 'bg-emerald-500/10 text-emerald-700' : 'bg-[#1A1A1A] text-[#efede4]'
+                    )}>
+                      {isPayment ? <ArrowDownCircle size={18} /> : <ArrowUpCircle size={18} />}
                     </div>
                     <div className="min-w-0">
-                      <p className="font-bold text-[#1A1A1A] truncate">{debtor?.name || 'Deleted Contact'}</p>
-                      <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">{format(new Date(tx.date), 'MMM dd, yyyy')}</p>
+                      <p className="font-extrabold text-[#0f172a] truncate text-sm leading-tight">
+                        {debtor?.name || 'Decommissioned Contact'}
+                      </p>
+                      <p className="text-[9px] uppercase tracking-widest font-extrabold text-slate-400 mt-1">
+                        {format(new Date(tx.date), 'dd - MMM - yy')}
+                      </p>
                     </div>
                   </div>
-                  <p className={cn('font-bold text-sm shrink-0 tabular-nums', tx.type === 'PAYMENT' ? 'text-emerald-600' : 'text-[#1A1A1A]')}>{tx.type === 'PAYMENT' ? '-' : '+'}{formatINR(tx.amount)}</p>
+                  <p className={cn(
+                    'font-extrabold text-sm shrink-0 tabular-nums', 
+                    isPayment ? 'text-emerald-700' : 'text-[#0f172a]'
+                  )}>
+                    {isPayment ? '-' : '+'}{formatINR(tx.amount)}
+                  </p>
                 </div>
-                <p className="mt-4 text-sm text-gray-500 line-clamp-2">{tx.note || 'No note'}</p>
+                {tx.note && <p className="mt-3 text-xs text-slate-650 font-semibold line-clamp-3 bg-white/20 p-2.5 rounded-xl border border-white/10">{tx.note}</p>}
               </motion.div>
             );
           })}
         </AnimatePresence>
+        {sortedTransactions.length === 0 && (
+          <div className="glass-panel p-16 text-center">
+            <p className="text-gray-500 text-sm font-extrabold">No statements found</p>
+          </div>
+        )}
       </div>
 
-      <div className="hidden md:block bg-white/40 backdrop-blur-3xl rounded-[40px] border border-white/60 shadow-[0_32px_64px_rgba(0,0,0,0.04)] overflow-hidden">
+      {/* Desktop table inside glass frame */}
+      <div className="hidden md:block glass-panel shadow-md overflow-hidden relative z-10 w-full">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
-              <tr className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-400 border-b border-gray-100/50">
-                <th className="px-8 py-6 cursor-pointer hover:text-[#3D4E3D] transition-colors" onClick={() => toggleSort('name')}><div className="flex items-center gap-2">Person <SortIcon field="name" /></div></th>
-                <th className="px-8 py-6 cursor-pointer hover:text-[#3D4E3D] transition-colors" onClick={() => toggleSort('date')}><div className="flex items-center gap-2">Date <SortIcon field="date" /></div></th>
-                <th className="px-8 py-6">Type</th>
-                <th className="px-8 py-6 cursor-pointer hover:text-[#3D4E3D] transition-colors" onClick={() => toggleSort('amount')}><div className="flex items-center gap-2">Amount <SortIcon field="amount" /></div></th>
-                <th className="px-8 py-6">Note</th>
-                <th className="px-8 py-6 text-right">Status</th>
+              <tr className="text-[10px] font-extrabold uppercase tracking-[0.25em] text-[#3D4E3D]/80 border-b border-white/20 bg-white/10 select-none">
+                <th className="px-8 py-5 cursor-pointer hover:text-[#3D4E3D] transition-colors" onClick={() => toggleSort('name')}>
+                  <div className="flex items-center gap-1.5">Identity <SortIcon field="name" /></div>
+                </th>
+                <th className="px-6 py-5 cursor-pointer hover:text-[#3D4E3D] transition-colors" onClick={() => toggleSort('date')}>
+                  <div className="flex items-center gap-1.5">Posting Date <SortIcon field="date" /></div>
+                </th>
+                <th className="px-6 py-5">Workflow Movement Type</th>
+                <th className="px-6 py-5 cursor-pointer hover:text-[#3D4E3D] transition-colors" onClick={() => toggleSort('amount')}>
+                  <div className="flex items-center gap-1.5">Amount <SortIcon field="amount" /></div>
+                </th>
+                <th className="px-6 py-5">Memo Details</th>
+                <th className="px-8 py-5 text-right">Ledger Audit State</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100/30">
+            <tbody className="divide-y divide-white/10">
               <AnimatePresence mode="popLayout">
                 {sortedTransactions.map((tx) => {
                   const debtor = debtors.find(d => d.id === tx.debtorId);
+                  const isPayment = tx.type === 'PAYMENT';
                   return (
-                    <motion.tr layout initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} key={tx.id} className="group hover:bg-white/40 transition-colors">
-                      <td className="px-8 py-5"><div className="flex items-center gap-3"><div className="w-9 h-9 bg-gradient-to-br from-[#EFE7D2] to-white text-[#3D4E3D] rounded-full flex items-center justify-center font-bold text-[10px] shadow-sm border border-white">{debtor?.name.split(' ').map(n => n[0]).join('') || '??'}</div><span className="text-sm font-bold text-[#1A1A1A]">{debtor?.name || 'Deleted Contact'}</span></div></td>
-                      <td className="px-8 py-5 text-sm font-medium text-gray-500">{format(new Date(tx.date), 'MMM dd, yyyy')}</td>
-                      <td className="px-8 py-5"><div className={cn('flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight px-3 py-1 rounded-full w-fit', tx.type === 'PAYMENT' ? 'bg-emerald-50 text-emerald-600' : 'bg-[#1A1A1A] text-white')}>{tx.type === 'PAYMENT' ? <ArrowDownCircle size={12} /> : <ArrowUpCircle size={12} />}{tx.type}</div></td>
-                      <td className={cn('px-8 py-5 text-sm font-bold', tx.type === 'PAYMENT' ? 'text-emerald-600' : 'text-[#1A1A1A]')}>{tx.type === 'PAYMENT' ? '-' : '+'}{formatINR(tx.amount)}</td>
-                      <td className="px-8 py-5"><p className="text-sm text-gray-500 max-w-[200px] truncate">{tx.note || '-'}</p></td>
-                      <td className="px-8 py-5 text-right"><span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-gray-400 uppercase"><div className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" />Settled</span></td>
+                    <motion.tr 
+                      layout 
+                      initial={{ opacity: 0 }} 
+                      animate={{ opacity: 1 }} 
+                      exit={{ opacity: 0 }} 
+                      key={tx.id} 
+                      className="group hover:bg-white/25 transition-colors duration-200"
+                    >
+                      <td className="px-8 py-4.5">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8.5 h-8.5 bg-gradient-to-br from-[#EFE7D2] to-[#dfd5ba] text-[#3D4E3D] rounded-full flex items-center justify-center font-extrabold text-[9.5px] shadow-xs border border-white">
+                            {debtor?.name.split(' ').map(n => n[0]).join('') || '??'}
+                          </div>
+                          <span className="text-xs font-extrabold text-[#0f172a]">
+                            {debtor?.name || 'Decommissioned Contact'}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4.5 text-xs font-extrabold text-slate-500">
+                        {format(new Date(tx.date), 'dd - MMM - yy')}
+                      </td>
+                      <td className="px-6 py-4.5">
+                        <div className={cn(
+                          'flex items-center gap-1.5 text-[8.5px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full w-fit border', 
+                          isPayment 
+                            ? 'bg-emerald-500/10 text-emerald-700 border-emerald-400/20' 
+                            : 'bg-slate-900/10 text-[#0f172a] border-slate-500/20'
+                        )}>
+                          {isPayment ? <ArrowDownCircle size={11} /> : <ArrowUpCircle size={11} />}
+                          {tx.type}
+                        </div>
+                      </td>
+                      <td className={cn(
+                        'px-6 py-4.5 text-xs font-extrabold tabular-nums', 
+                        isPayment ? 'text-emerald-700' : 'text-[#0f172a]'
+                      )}>
+                        {isPayment ? '-' : '+'}{formatINR(tx.amount)}
+                      </td>
+                      <td className="px-6 py-4.5">
+                        <p className="text-xs text-slate-500 font-semibold max-w-[200px] truncate" title={tx.note}>
+                          {tx.note || '-'}
+                        </p>
+                      </td>
+                      <td className="px-8 py-4.5 text-right">
+                        <span className="inline-flex items-center gap-1.5 text-[9px] font-extrabold text-slate-400 uppercase select-none">
+                          <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full shadow-[0_0_6px_rgba(16,185,129,0.5)] animate-pulse" />
+                          Audited OK
+                        </span>
+                      </td>
                     </motion.tr>
                   );
                 })}
               </AnimatePresence>
             </tbody>
           </table>
+          {sortedTransactions.length === 0 && (
+            <div className="p-24 text-center">
+              <p className="text-[#0f172a] font-extrabold text-sm">Quiet Ledger</p>
+              <p className="text-gray-500 text-xs mt-1">No payments or balances logged yet.</p>
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
