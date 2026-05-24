@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, TrendingDown, Users, Sparkles } from 'lucide-react';
-import { formatINR, cn } from '../../lib/utils';
+import { formatINR, formatINRCompact, cn } from '../../lib/utils';
 import { CandidateStage, Debtor } from '../../types';
 import { CANDIDATE_STAGE_META, CANDIDATE_STAGE_ORDER, getStageProgress } from '../../constants';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -254,7 +254,7 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
                   tickLine={false}
                   axisLine={false}
                   tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }}
-                  tickFormatter={(value) => formatINR(Number(value))}
+                  tickFormatter={(value) => formatINRCompact(Number(value))}
                 />
                 <Tooltip
                   cursor={{ stroke: 'rgba(56,189,248,0.25)', strokeWidth: 1.5 }}
