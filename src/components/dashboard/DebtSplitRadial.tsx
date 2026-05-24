@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { CheckCircle2, TrendingDown, Users } from 'lucide-react';
+import { CheckCircle2, TrendingDown, Users, Sparkles } from 'lucide-react';
 import { formatINR, cn } from '../../lib/utils';
 import { CandidateStage, Debtor } from '../../types';
 import { CANDIDATE_STAGE_META, CANDIDATE_STAGE_ORDER, getStageProgress } from '../../constants';
@@ -18,7 +18,17 @@ interface DebtSplitRadialProps {
   stageCounts: Record<CandidateStage, number>;
 }
 
-export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({ collected, remaining, totalManaged, debtors, monthPoints, totalProfiles, profilesCompleted, profilesRemaining, stageCounts }) => {
+export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({ 
+  collected, 
+  remaining, 
+  totalManaged, 
+  debtors, 
+  monthPoints, 
+  totalProfiles, 
+  profilesCompleted, 
+  profilesRemaining, 
+  stageCounts 
+}) => {
   const safeTotal = Math.max(collected + remaining, 1);
   const collectedPercent = Math.min(100, Math.max(0, (collected / safeTotal) * 100));
   const remainingPercent = 100 - collectedPercent;
@@ -29,161 +39,305 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({ collected, rem
 
   React.useEffect(() => {
     if (debtors.length <= 1) return;
-    const interval = setInterval(() => setCurrentIndex((prev) => (prev + 1) % debtors.length), 5000);
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % debtors.length);
+    }, 5000);
     return () => clearInterval(interval);
   }, [debtors.length]);
 
   const currentDebtor = debtors[currentIndex];
+
   return (
-    <div className="relative overflow-hidden p-5 sm:p-10 rounded-[32px] sm:rounded-[48px] min-h-[520px] sm:min-h-[560px] flex flex-col bg-white/30 backdrop-blur-[40px] border border-white/60 shadow-[0_32px_64px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.5)] ring-1 ring-black/[0.02]">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <motion.div animate={{ x: [0, 40, -20, 0], y: [0, -30, 20, 0] }} transition={{ duration: 20, repeat: Infinity, ease: 'linear' }} className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-emerald-400/15 blur-[100px]" />
-        <motion.div animate={{ x: [0, -50, 30, 0], y: [0, 40, -20, 0] }} transition={{ duration: 25, repeat: Infinity, ease: 'linear' }} className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] rounded-full bg-red-400/10 blur-[100px]" />
-        <motion.div animate={{ x: [0, 30, -40, 0], y: [0, 50, -30, 0] }} transition={{ duration: 22, repeat: Infinity, ease: 'linear' }} className="absolute -bottom-[10%] left-[20%] w-[40%] h-[40%] rounded-full bg-amber-200/10 blur-[100px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_15%,rgba(16,185,129,0.08),transparent_40%),radial-gradient(circle_at_90%_15%,rgba(248,113,113,0.08),transparent_40%)]" />
+    <div className="relative overflow-hidden p-6 sm:p-9.5 rounded-[36px] sm:rounded-[48px] min-h-[500px] flex flex-col bg-white/25 backdrop-blur-[35px] border border-white/50 shadow-[0_24px_64px_rgba(15,23,42,0.06),inset_0_1px_2px_rgba(255,255,255,0.6)] ring-1 ring-black/[0.01]">
+      {/* Interior floating ambient blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[36px] sm:rounded-[48px]">
+        <motion.div 
+          animate={{ x: [0, 50, -30, 0], y: [0, -40, 30, 0] }} 
+          transition={{ duration: 25, repeat: Infinity, ease: 'linear' }} 
+          className="absolute -top-[15%] -left-[10%] w-[55%] h-[55%] rounded-full bg-emerald-400/12 blur-[90px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, -60, 40, 0], y: [0, 50, -30, 0] }} 
+          transition={{ duration: 30, repeat: Infinity, ease: 'linear' }} 
+          className="absolute top-[25%] -right-[15%] w-[50%] h-[50%] rounded-full bg-rose-400/8 blur-[100px]" 
+        />
+        <motion.div 
+          animate={{ x: [0, 40, -50, 0], y: [0, 60, -40, 0] }} 
+          transition={{ duration: 28, repeat: Infinity, ease: 'linear' }} 
+          className="absolute -bottom-[20%] left-[25%] w-[45%] h-[45%] rounded-full bg-cyan-200/10 blur-[90px]" 
+        />
       </div>
 
-      <div className="relative z-10 flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
+      {/* Top Banner Stats Grid */}
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
         <div>
-          <h3 className="text-xl font-bold tracking-tight text-[#1A1A1A]">Collection Split</h3>
-          <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-1">Received vs remaining balance</p>
+          <h3 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#0f172a] font-display">Financial Ledger Summary</h3>
+          <p className="text-[10px] text-gray-400 font-extrabold uppercase tracking-[0.25em] mt-1.5 font-sans">Payment recovery metrics & targets</p>
         </div>
-        <div className="flex flex-wrap gap-3">
-          <div className="rounded-2xl bg-white/40 px-4 py-2 border border-white/50 shadow-sm backdrop-blur-xl shrink-0 ring-1 ring-black/[0.02]"><p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Total Impact</p><p className="text-sm font-bold tabular-nums">{formatINR(totalManaged)}</p></div>
-          <div className="rounded-2xl bg-white/40 px-4 py-2 border border-white/50 shadow-sm backdrop-blur-xl shrink-0 ring-1 ring-black/[0.02]"><p className="text-[9px] uppercase tracking-widest text-gray-400 font-bold">Total Profiles</p><p className="text-sm font-bold tabular-nums">{totalProfiles}</p></div>
+        <div className="flex flex-wrap gap-2.5">
+          <div className="rounded-2xl bg-white/40 px-4 py-2 border border-white/50 shadow-xs backdrop-blur-md shrink-0 select-none">
+            <p className="text-[8.5px] uppercase tracking-widest text-[#3D4E3D] font-extrabold">Active Ledgers</p>
+            <p className="text-xs sm:text-sm font-extrabold tabular-nums text-slate-800 mt-0.5">{formatINR(totalManaged)}</p>
+          </div>
+          <div className="rounded-2xl bg-white/40 px-4 py-2 border border-white/50 shadow-xs backdrop-blur-md shrink-0 select-none">
+            <p className="text-[8.5px] uppercase tracking-widest text-slate-500 font-extrabold">Contacts Count</p>
+            <p className="text-xs sm:text-sm font-extrabold tabular-nums text-slate-850 mt-0.5">{totalProfiles}</p>
+          </div>
         </div>
       </div>
 
-      <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[minmax(280px,1fr)_minmax(220px,0.9fr)] gap-8 items-center">
-        <div className="relative mx-auto h-64 w-64 sm:h-72 sm:w-72">
-          <div className="absolute inset-6 rounded-full bg-white/25 border border-white/45 shadow-[inset_0_6px_18px_rgba(255,255,255,0.7),0_22px_44px_rgba(0,0,0,0.06)] backdrop-blur-2xl ring-1 ring-black/[0.01]" />
-          <svg className="absolute inset-0 h-full w-full -rotate-90 drop-shadow-[0_0_20px_rgba(16,185,129,0.14)]" viewBox="0 0 240 240">
-            <circle cx="120" cy="120" r="92" fill="none" stroke="rgba(255,255,255,0.58)" strokeWidth="28" />
-            <motion.circle cx="120" cy="120" r="92" fill="none" stroke="url(#collectedGradient)" strokeWidth="28" strokeLinecap="round" strokeDasharray={`${collectedDash} ${circumference - collectedDash}`} initial={{ strokeDashoffset: circumference }} animate={{ strokeDashoffset: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.15 }} />
-            <motion.circle cx="120" cy="120" r="92" fill="none" stroke="url(#remainingGradient)" strokeWidth="28" strokeLinecap="round" strokeDasharray={`${remainingDash} ${circumference - remainingDash}`} strokeDashoffset={-collectedDash - 8} initial={{ opacity: 0, rotate: 8 }} animate={{ opacity: 1, rotate: 0 }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1], delay: 0.25 }} style={{ transformOrigin: '120px 120px' }} />
+      {/* Circle & Cards Grid */}
+      <div className="relative z-10 grid grid-cols-1 xl:grid-cols-[minmax(280px,1.1fr)_minmax(240px,0.9fr)] gap-8 items-center border-b border-white/10 pb-8">
+        
+        {/* Blown Glass Circle */}
+        <div className="relative mx-auto h-64 w-64 sm:h-72 sm:w-72 flex items-center justify-center">
+          <div className="absolute inset-5 rounded-full bg-white/20 border border-white/50 shadow-[inset_0_4px_12px_rgba(255,255,255,0.65),0_15px_35px_-8px_rgba(15,23,42,0.06)] backdrop-blur-3xl ring-1 ring-black/[0.01]" />
+          <svg className="absolute inset-0 h-full w-full -rotate-90 drop-shadow-[0_4px_16px_rgba(16,185,129,0.08)]" viewBox="0 0 240 240">
+            <circle cx="120" cy="120" r="92" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="26" />
+            
+            {/* Green progress (collected) */}
+            <motion.circle 
+              cx="120" 
+              cy="120" 
+              r="92" 
+              fill="none" 
+              stroke="url(#collectedGradient)" 
+              strokeWidth="26" 
+              strokeLinecap="round" 
+              strokeDasharray={`${collectedDash} ${circumference - collectedDash}`} 
+              initial={{ strokeDashoffset: circumference }} 
+              animate={{ strokeDashoffset: 0 }} 
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.15 }} 
+            />
+            {/* Red remainder progress */}
+            <motion.circle 
+              cx="120" 
+              cy="120" 
+              r="92" 
+              fill="none" 
+              stroke="url(#remainingGradient)" 
+              strokeWidth="26" 
+              strokeLinecap="round" 
+              strokeDasharray={`${remainingDash} ${circumference - remainingDash}`} 
+              strokeDashoffset={-collectedDash - 4} 
+              initial={{ opacity: 0, scale: 0.95 }} 
+              animate={{ opacity: 1, scale: 1 }} 
+              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.25 }} 
+              style={{ transformOrigin: '120px 120px' }} 
+            />
+            
             <defs>
-              <linearGradient id="collectedGradient" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stopColor="#6EE7B7" /><stop offset="100%" stopColor="#059669" /></linearGradient>
-              <linearGradient id="remainingGradient" x1="0" x2="1" y1="0" y2="1"><stop offset="0%" stopColor="#FCA5A5" /><stop offset="100%" stopColor="#EF4444" /></linearGradient>
+              <linearGradient id="collectedGradient" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stopColor="#86EFAC" />
+                <stop offset="100%" stopColor="#059669" />
+              </linearGradient>
+              <linearGradient id="remainingGradient" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0%" stopColor="#FCA5A5" />
+                <stop offset="100%" stopColor="#E11D48" />
+              </linearGradient>
             </defs>
           </svg>
-          <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 60, damping: 12, delay: 0.5 }} className="absolute inset-0 flex flex-col items-center justify-center text-center">
-            <p className="text-5xl font-bold tracking-tight tabular-nums text-[#0f172a] drop-shadow-sm">{Math.round(collectedPercent)}<span className="text-2xl ml-0.5 opacity-50">%</span></p>
-            <p className="text-[10px] uppercase tracking-[0.22em] font-bold text-gray-400 mt-2">Collected</p>
+          <motion.div 
+            initial={{ scale: 0.85, opacity: 0 }} 
+            animate={{ scale: 1, opacity: 1 }} 
+            transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.45 }} 
+            className="absolute inset-0 flex flex-col items-center justify-center text-center"
+          >
+            <p className="text-5xl font-extrabold tracking-tight tabular-nums text-[#0f172a] font-display">
+              {Math.round(collectedPercent)}
+              <span className="text-xl ml-0.5 text-slate-400 font-bold">%</span>
+            </p>
+            <p className="text-[9.5px] uppercase tracking-[0.25em] font-extrabold text-[#3D4E3D] mt-2.5">Sovereignty</p>
           </motion.div>
         </div>
 
-        <div className="space-y-3">
-          <div className="p-5 rounded-[28px] bg-white/20 backdrop-blur-xl border border-white/40 shadow-[0_8px_20px_rgba(0,0,0,0.02)] group hover:bg-white/40 transition-all duration-500">
-            <div className="flex items-center gap-3 mb-4"><div className="h-10 w-10 rounded-2xl bg-emerald-50/50 text-emerald-600 flex items-center justify-center border border-emerald-100/50"><CheckCircle2 size={18} className="group-hover:scale-110 transition-transform duration-500" /></div><div><p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Received</p><p className="text-2xl font-bold tabular-nums text-emerald-600">{formatINR(collected)}</p></div></div>
-            <div className="h-1.5 rounded-full bg-emerald-50 overflow-hidden"><motion.div initial={{ width: 0 }} animate={{ width: `${collectedPercent}%` }} transition={{ type: 'spring', stiffness: 40, damping: 20, delay: 0.6 }} className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-emerald-600" /></div>
-          </div>
-
-          <div className="p-5 rounded-[28px] bg-white/20 backdrop-blur-xl border border-white/40 shadow-[0_8px_20px_rgba(0,0,0,0.02)] group hover:bg-white/40 transition-all duration-500">
-            <div className="flex items-center gap-3 mb-4"><div className="h-10 w-10 rounded-2xl bg-red-50/50 text-red-500 flex items-center justify-center border border-red-100/50"><TrendingDown size={18} className="group-hover:scale-110 transition-transform duration-500" /></div><div><p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Remaining</p><p className="text-2xl font-bold tabular-nums text-red-500">{formatINR(remaining)}</p></div></div>
-            <div className="h-1.5 rounded-full bg-red-50 overflow-hidden"><motion.div initial={{ width: 0 }} animate={{ width: `${remainingPercent}%` }} transition={{ type: 'spring', stiffness: 40, damping: 20, delay: 0.7 }} className="h-full rounded-full bg-gradient-to-r from-red-300 to-red-500" /></div>
-          </div>
-
-          <div className="p-5 rounded-[28px] bg-black/[0.02] backdrop-blur-xl border border-white/40 shadow-inner relative overflow-hidden">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-2xl bg-[#EFE7D2]/80 text-[#3D4E3D] flex items-center justify-center border border-white/60"><Users size={18} /></div>
+        {/* Dynamic side values stacked */}
+        <div className="space-y-4">
+          <div className="p-4 rounded-[24px] bg-white/20 backdrop-blur-xl border border-white/40 shadow-sm hover:bg-white/35 transition-all duration-300">
+            <div className="flex items-center gap-3.5 mb-3">
+              <div className="h-9 w-9 rounded-xl bg-emerald-500/10 text-emerald-700 flex items-center justify-center border border-emerald-300/20">
+                <CheckCircle2 size={16} />
+              </div>
               <div>
-                <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">Profile Split</p>
-                <p className="text-sm font-bold text-[#1A1A1A]">Total, completed and remaining</p>
+                <p className="text-[9px] uppercase tracking-widest font-extrabold text-slate-400">Total Collected</p>
+                <p className="text-xl font-extrabold tabular-nums text-emerald-700">{formatINR(collected)}</p>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div className="rounded-2xl bg-white/60 px-3 py-3 border border-white/70"><p className="text-[9px] uppercase tracking-widest font-bold text-gray-400">Total</p><p className="mt-1 text-lg font-bold text-[#1A1A1A]">{totalProfiles}</p></div>
-              <div className="rounded-2xl bg-emerald-50/70 px-3 py-3 border border-emerald-100/70"><p className="text-[9px] uppercase tracking-widest font-bold text-emerald-600">Completed</p><p className="mt-1 text-lg font-bold text-emerald-700">{profilesCompleted}</p></div>
-              <div className="rounded-2xl bg-sky-50/70 px-3 py-3 border border-sky-100/70"><p className="text-[9px] uppercase tracking-widest font-bold text-sky-600">Remaining</p><p className="mt-1 text-lg font-bold text-sky-700">{profilesRemaining}</p></div>
+            <div className="h-1 bg-emerald-100 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }} 
+                animate={{ width: `${collectedPercent}%` }} 
+                transition={{ duration: 1 }}
+                className="h-full bg-emerald-500" 
+              />
+            </div>
+          </div>
+
+          <div className="p-4 rounded-[24px] bg-white/20 backdrop-blur-xl border border-white/40 shadow-sm hover:bg-white/35 transition-all duration-300">
+            <div className="flex items-center gap-3.5 mb-3">
+              <div className="h-9 w-9 rounded-xl bg-rose-500/10 text-rose-700 flex items-center justify-center border border-rose-300/20">
+                <TrendingDown size={16} />
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-widest font-extrabold text-slate-400">Unsettled Outstanding</p>
+                <p className="text-xl font-extrabold tabular-nums text-rose-700">{formatINR(remaining)}</p>
+              </div>
+            </div>
+            <div className="h-1 bg-rose-100 rounded-full overflow-hidden">
+              <motion.div 
+                initial={{ width: 0 }} 
+                animate={{ width: `${remainingPercent}%` }} 
+                transition={{ duration: 1 }}
+                className="h-full bg-rose-500" 
+              />
+            </div>
+          </div>
+
+          {/* Solid glass footer indicators */}
+          <div className="p-4 rounded-[24px] bg-white/10 backdrop-blur-md border border-white/25 shadow-inner">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="h-9 w-9 rounded-xl bg-[#3D4E3D]/10 text-[#3D4E3D] flex items-center justify-center border border-[#3D4E3D]/20">
+                <Users size={16} />
+              </div>
+              <div>
+                <p className="text-[9px] uppercase tracking-widest font-extrabold text-slate-500 leading-tight">Settlement Segregation</p>
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="bg-white/30 px-2.5 py-2 rounded-xl border border-white/40 text-center">
+                <p className="text-[8px] uppercase tracking-widest font-extrabold text-slate-500">Managed</p>
+                <p className="text-base font-extrabold text-[#0f172a] mt-0.5 tabular-nums">{totalProfiles}</p>
+              </div>
+              <div className="bg-emerald-500/10 px-2.5 py-2 rounded-xl border border-emerald-400/20 text-center">
+                <p className="text-[8px] uppercase tracking-widest font-extrabold text-emerald-800">Settled</p>
+                <p className="text-base font-extrabold text-emerald-700 mt-0.5 tabular-nums">{profilesCompleted}</p>
+              </div>
+              <div className="bg-sky-500/10 px-2.5 py-2 rounded-xl border border-sky-400/20 text-center">
+                <p className="text-[8px] uppercase tracking-widest font-extrabold text-sky-800">Remaining</p>
+                <p className="text-base font-extrabold text-sky-700 mt-0.5 tabular-nums">{profilesRemaining}</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 mt-8 grid grid-cols-1 xl:grid-cols-[minmax(280px,1.2fr)_minmax(220px,0.8fr)] gap-4">
-        <div className="liquid-chip rounded-[26px] p-5 sm:p-6">
+      {/* Recast bottom stats containing Area Charts & stages list */}
+      <div className="relative z-10 pt-6 grid grid-cols-1 xl:grid-cols-[minmax(280px,1.24fr)_minmax(220px,0.76fr)] gap-5">
+        
+        {/* Continuous area flow chart */}
+        <div className="rounded-[26px] bg-white/15 border border-white/40 p-5 shadow-xs backdrop-blur-xl relative">
           <div className="flex items-start justify-between gap-4 mb-4">
-            <div><h4 className="text-base sm:text-lg font-bold text-glass-main">Collection Momentum</h4><p className="text-[10px] uppercase tracking-[0.18em] text-glass-subtle font-semibold">Monthly amount collected</p></div>
-            <div className="text-right"><p className="text-[10px] uppercase tracking-widest text-glass-subtle font-semibold">Latest Month</p><p className="text-sm font-bold text-glass-main tabular-nums">{monthPoints.length ? formatINR(monthPoints[monthPoints.length - 1].amount) : formatINR(0)}</p></div>
+            <div>
+              <h4 className="text-base sm:text-lg font-extrabold text-[#0f172a] tracking-tight leading-none font-display">Momentum Ledger</h4>
+              <p className="text-[8.5px] uppercase tracking-[0.2em] text-slate-500 font-extrabold mt-1.5 font-sans">Monthly payment inflows</p>
+            </div>
+            <div className="text-right">
+              <p className="text-[8.5px] uppercase tracking-widest text-[#3D4E3D] font-extrabold leading-none">Last Period</p>
+              <p className="text-sm font-extrabold text-[#0f172a] tabular-nums mt-1 font-display">
+                {monthPoints.length ? formatINR(monthPoints[monthPoints.length - 1].amount) : formatINR(0)}
+              </p>
+            </div>
           </div>
-          <div className="h-56 rounded-[24px] bg-white/35 border border-white/55 p-3">
+
+          <div className="h-44 rounded-2xl bg-white/20 border border-white/30 p-2 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthPoints} margin={{ top: 14, right: 10, left: 4, bottom: 2 }}>
+              <AreaChart data={monthPoints} margin={{ top: 10, right: 6, left: -14, bottom: 0 }}>
                 <defs>
-                  <linearGradient id="collectionMomentumFill" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor="rgba(56,189,248,0.55)" />
-                    <stop offset="100%" stopColor="rgba(56,189,248,0.05)" />
+                  <linearGradient id="glowingInflowGradient" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0%" stopColor="rgba(56,189,248,0.5)" />
+                    <stop offset="100%" stopColor="rgba(56,189,248,0.01)" />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="rgba(148,163,184,0.18)" strokeDasharray="4 6" vertical={false} />
-                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }} />
+                <CartesianGrid stroke="rgba(148,163,184,0.12)" strokeDasharray="3 5" vertical={false} />
+                <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }} />
                 <YAxis
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fill: '#64748b', fontSize: 11, fontWeight: 700 }}
+                  tick={{ fill: '#475569', fontSize: 10, fontWeight: 700 }}
                   tickFormatter={(value) => formatINR(Number(value))}
-                  width={72}
                 />
                 <Tooltip
                   cursor={{ stroke: 'rgba(56,189,248,0.25)', strokeWidth: 1.5 }}
-                  formatter={(value) => [formatINR(Number(value || 0)), 'Collected']}
+                  formatter={(value) => [formatINR(Number(value || 0)), 'Inflows']}
                   contentStyle={{
-                    borderRadius: 18,
-                    border: '1px solid rgba(255,255,255,0.72)',
-                    background: 'rgba(255,255,255,0.88)',
-                    boxShadow: '0 18px 44px rgba(15,23,42,0.16)',
+                    borderRadius: 16,
+                    border: '1px solid rgba(255,255,255,0.7)',
+                    background: 'rgba(255,255,255,0.9)',
+                    boxShadow: '0 12px 32px rgba(15,23,42,0.1)',
                     color: '#0f172a',
+                    fontWeight: 800,
+                    fontSize: 11
                   }}
                 />
                 <Area
                   type="monotone"
                   dataKey="amount"
                   stroke="#0ea5e9"
-                  strokeWidth={3}
-                  fill="url(#collectionMomentumFill)"
+                  strokeWidth={2.5}
+                  fill="url(#glowingInflowGradient)"
                   dot={{ r: 0 }}
-                  activeDot={{ r: 4, strokeWidth: 0, fill: '#0284c7' }}
+                  activeDot={{ r: 4, strokeWidth: 0, fill: '#0ea5e9' }}
                 />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="liquid-chip rounded-[26px] p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4 mb-4">
-            <div><h4 className="text-base sm:text-lg font-bold text-glass-main">Candidate Workflow</h4><p className="text-[10px] uppercase tracking-[0.18em] text-glass-subtle font-semibold">Secondary tracking across interview stages</p></div>
+        {/* Pipeline stage summary breakdown */}
+        <div className="rounded-[26px] bg-white/15 border border-white/40 p-5 shadow-xs backdrop-blur-xl flex flex-col justify-between">
+          <div className="shrink-0 mb-3.5">
+            <h4 className="text-base font-extrabold text-[#0f172a] font-display tracking-tight leading-none select-none">Recruitment Pipeline</h4>
+            <p className="text-[8.5px] uppercase tracking-[0.2em] text-slate-500 font-extrabold mt-1.5 font-sans leading-relaxed">System candidate stage counters</p>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-1.5 scrollbar-thin max-h-[142px] overflow-y-auto pr-0.5">
             {CANDIDATE_STAGE_ORDER.map(stage => {
               const meta = CANDIDATE_STAGE_META[stage];
               return (
-                <div key={stage} className="flex items-center justify-between gap-3 rounded-2xl bg-white/45 border border-white/60 px-4 py-3">
-                  <div className="flex items-center gap-3 min-w-0"><span className={cn('h-2.5 w-2.5 rounded-full shadow-sm', meta.accentClassName)} /><p className="text-sm font-semibold text-glass-main truncate">{meta.label}</p></div>
-                  <p className="text-sm font-bold text-glass-main tabular-nums">{stageCounts[stage]}</p>
+                <div key={stage} className="flex items-center justify-between gap-3 rounded-xl bg-white/40 border border-white/50 px-3.5 py-2.5">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={cn('h-2 w-2 rounded-full shrink-0 shadow-sm', meta.accentClassName)} />
+                    <p className="text-xs font-bold text-slate-800 truncate leading-tight">{meta.label}</p>
+                  </div>
+                  <p className="text-xs font-black text-slate-900 tabular-nums">{stageCounts[stage]}</p>
                 </div>
               );
             })}
           </div>
         </div>
+
       </div>
 
-      <div className="relative z-10 mt-4 p-5 rounded-[28px] bg-black/[0.02] backdrop-blur-xl border border-white/40 shadow-inner h-[92px] overflow-hidden flex items-center">
+      {/* Floating active candidate auto-scroller comment ticker */}
+      <div className="relative z-10 mt-5 p-4 rounded-[24px] bg-black/[0.02] border border-white/35 shadow-inner h-20 overflow-hidden flex items-center">
         <AnimatePresence mode="popLayout" initial={false}>
-          {currentDebtor && (
-            <motion.div key={currentDebtor.id} initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -40, opacity: 0 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }} className="flex items-center gap-3 w-full">
-              <div className="h-10 w-10 rounded-2xl bg-[#EFE7D2]/80 text-[#3D4E3D] flex items-center justify-center text-xs font-bold shrink-0">{currentDebtor.name.split(' ').map(n => n[0]).join('')}</div>
+          {currentDebtor ? (
+            <motion.div 
+              key={currentDebtor.id} 
+              initial={{ y: 30, opacity: 0 }} 
+              animate={{ y: 0, opacity: 1 }} 
+              exit={{ y: -30, opacity: 0 }} 
+              transition={{ duration: 0.65 }} 
+              className="flex items-center gap-3.5 w-full leading-snug"
+            >
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-[#EFE7D2] to-[#dfd5ba] text-[#3D4E3D] flex items-center justify-center text-[10px] font-extrabold shrink-0 border border-white">
+                {currentDebtor.name.split(' ').map(n => n[0]).join('')}
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 truncate">{currentDebtor.name}</p>
-                <div className="flex items-center justify-between mt-0.5">
-                  <p className="text-sm font-bold text-[#1A1A1A]">Paid Progress</p>
-                  <p className="text-sm font-bold text-[#3D4E3D] tabular-nums">{Math.round((currentDebtor.amountPaid / Math.max(currentDebtor.totalDebt, 1)) * 100)}%</p>
+                <p className="text-[8.5px] uppercase tracking-widest font-extrabold text-slate-400 truncate leading-none mb-1">Active Contact Scroller</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-extrabold text-[#0f172a] truncate max-w-[70%]">{currentDebtor.name}</p>
+                  <p className="text-xs font-extrabold text-[#3D4E3D] tabular-nums">
+                    {Math.round((currentDebtor.amountPaid / Math.max(currentDebtor.totalDebt, 1)) * 100)}% Settled
+                  </p>
                 </div>
               </div>
             </motion.div>
+          ) : (
+            <p className="text-[9px] uppercase tracking-widest font-extrabold text-slate-400 select-none">No active contacts logged in local bundle.</p>
           )}
         </AnimatePresence>
-        {!currentDebtor && <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400">No managed accounts yet</p>}
       </div>
+
     </div>
   );
 };

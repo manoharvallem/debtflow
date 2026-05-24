@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, User, IndianRupee, Save } from 'lucide-react';
+import { X, User, IndianRupee, Tag, Save, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Debtor } from '../../types';
 
@@ -7,19 +7,46 @@ interface EditDebtorModalProps {
   debtor: Debtor | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { id: string; name: string; totalDebt: number; labels: string[] }) => void;
+  onSave: (data: { id: string; name: string; totalDebt: number; labels: string[]; joiningDate?: string }) => void;
 }
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.05,
+      delayChildren: 0.05,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 260,
+      damping: 24,
+    },
+  },
+} as const;
 
 export const EditDebtorModal: React.FC<EditDebtorModalProps> = ({ debtor, isOpen, onClose, onSave }) => {
   const [name, setName] = useState('');
   const [totalDebt, setTotalDebt] = useState('');
   const [labels, setLabels] = useState('');
+  const [joiningDate, setJoiningDate] = useState('');
 
   useEffect(() => {
     if (!debtor) return;
     setName(debtor.name);
     setTotalDebt(String(debtor.totalDebt));
     setLabels(debtor.labels.join(', '));
+    setJoiningDate(debtor.joiningDate || '');
   }, [debtor]);
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -30,6 +57,7 @@ export const EditDebtorModal: React.FC<EditDebtorModalProps> = ({ debtor, isOpen
       name: name.trim(),
       totalDebt: parseFloat(totalDebt) || 0,
       labels: labels.split(',').map((label) => label.trim()).filter(Boolean),
+      joiningDate: debtor.currentStage === 'OFFER_RELEASED' ? joiningDate || undefined : debtor.joiningDate,
     });
     onClose();
   };
@@ -38,54 +66,133 @@ export const EditDebtorModal: React.FC<EditDebtorModalProps> = ({ debtor, isOpen
     <AnimatePresence>
       {isOpen && debtor && (
         <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-3 sm:p-6">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/35 backdrop-blur-md" />
-          <motion.div initial={{ opacity: 0, scale: 0.94, y: 28 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.94, y: 28 }} transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }} className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto liquid-panel rounded-[32px] sm:rounded-[48px]">
-            <div className="relative overflow-hidden rounded-t-[32px] sm:rounded-t-[48px] border-b border-white/50 bg-gradient-to-br from-white/55 via-white/30 to-emerald-100/30 p-6 sm:p-10 backdrop-blur-3xl">
-              <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none rotate-12"><User size={140} /></div>
+          {/* Frosted deep backdrop shadow */}
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }} 
+            onClick={onClose} 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-md" 
+          />
+          
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.94, y: 30 }} 
+            animate={{ opacity: 1, scale: 1, y: 0 }} 
+            exit={{ opacity: 0, scale: 0.94, y: 30 }} 
+            transition={{ type: 'spring', duration: 0.45 }}
+            className="relative w-full max-w-lg max-h-[92vh] overflow-y-auto glass-panel-strong rounded-[36px] sm:rounded-[44px] shadow-2xl border border-white/60 focus:outline-none animate-glass-enter"
+          >
+            {/* Header banner gradient reflecting emerald collection tones */}
+            <div className="relative overflow-hidden border-b border-white/20 bg-gradient-to-br from-white/50 via-white/10 to-emerald-100/20 p-6 sm:p-9 backdrop-blur-3xl rounded-t-[36px] sm:rounded-t-[44px]">
+              <div className="absolute top-0 right-0 p-6 text-emerald-700/5 pointer-events-none rotate-12">
+                <User size={120} />
+              </div>
               <div className="relative z-10">
-                <div className="flex justify-between items-center mb-4 sm:mb-6">
-                  <h3 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1A1A]">Edit Profile</h3>
-                  <button onClick={onClose} className="p-3 rounded-2xl text-slate-500 hover:bg-white/30 hover:text-[#1A1A1A] transition-all"><X size={24} /></button>
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#0f172a] font-display">Edit Profile</h3>
+                  <button 
+                    type="button"
+                    onClick={onClose} 
+                    className="p-2.5 rounded-xl text-slate-500 hover:bg-white/40 hover:text-[#0f172a] transition-all focus:outline-none"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
-                <p className="text-glass-subtle font-medium tracking-tight">Update the person name or total impact amount while keeping the workflow history intact.</p>
+                <p className="text-xs font-bold text-[#475569]/90 tracking-tight leading-relaxed">
+                  Modify full contact name or overall system balance while maintaining full activity logs & comments history intact.
+                </p>
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 sm:p-10 space-y-5 sm:space-y-8">
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Full Name</label>
-                <div className="relative group">
-                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                  <input type="text" value={name} onChange={(event) => setName(event.target.value)} required className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm outline-none transition-all" />
-                </div>
-              </div>
+            <form onSubmit={handleSubmit} className="p-6 sm:p-9">
+              <motion.div
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="space-y-6 sm:space-y-7"
+              >
+                {/* Full Name */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Full Name</label>
+                  <div className="relative group">
+                    <User className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                    <input 
+                      type="text" 
+                      value={name} 
+                      onChange={(event) => setName(event.target.value)} 
+                      required 
+                      className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                    />
+                  </div>
+                </motion.div>
 
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Total Impact</label>
-                <div className="relative group">
-                  <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                  <input type="number" min="0" value={totalDebt} onChange={(event) => setTotalDebt(event.target.value)} required className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm outline-none transition-all" />
-                </div>
-              </div>
+                {/* Total Debt */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Active Total Impact</label>
+                  <div className="relative group">
+                    <IndianRupee className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                    <input 
+                      type="number" 
+                      min="0" 
+                      step="0.01"
+                      value={totalDebt} 
+                      onChange={(event) => setTotalDebt(event.target.value)} 
+                      required 
+                      className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                    />
+                  </div>
+                </motion.div>
 
-              <div className="space-y-3">
-                <label className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] ml-2">Labels</label>
-                <div className="relative group">
-                  <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-black transition-colors" size={18} />
-                  <input
-                    type="text"
-                    value={labels}
-                    onChange={(event) => setLabels(event.target.value)}
-                    placeholder="e.g. high-priority, office, friend"
-                    className="w-full pl-14 pr-6 py-5 bg-white/60 rounded-[28px] border border-white/80 shadow-sm focus:ring-4 focus:ring-emerald-500/10 font-bold text-sm outline-none transition-all"
-                  />
-                </div>
-              </div>
+                 {/* Tag Selection */}
+                <motion.div variants={itemVariants} className="space-y-2">
+                  <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Portfolio Labels</label>
+                  <div className="relative group">
+                    <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                    <input 
+                      type="text" 
+                      value={labels} 
+                      onChange={(event) => setLabels(event.target.value)} 
+                      placeholder="e.g. personal, urgent, office" 
+                      className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                    />
+                  </div>
+                  <p className="text-[9.5px] text-gray-500 font-semibold px-2">Separate multiple labels with commas</p>
+                </motion.div>
 
-              <div className="grid grid-cols-1 sm:flex gap-3 sm:gap-4 pt-4">
-                <button type="button" onClick={onClose} className="flex-1 py-4 sm:py-5 rounded-[28px] text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-[#1A1A1A] hover:bg-white/40 transition-all">Cancel</button>
-                <button type="submit" className="flex-[1.5] flex items-center justify-center gap-3 py-4 sm:py-5 rounded-[28px] text-[10px] font-bold uppercase tracking-[0.2em] bg-[#3D4E3D] text-[#EFE7D2] shadow-xl shadow-[#3D4E3D]/20 hover:brightness-110 transition-all active:scale-95 px-8 sm:px-12"><Save size={16} />Save Changes</button>
-              </div>
+                {/* Date of joining option when stage has OFFER_RELEASED */}
+                {debtor.currentStage === 'OFFER_RELEASED' && (
+                  <motion.div variants={itemVariants} className="space-y-2 animate-glass-enter">
+                    <label className="text-[10px] font-extrabold text-[#059669] uppercase tracking-[0.2em] ml-2">Release Date of Joining</label>
+                    <div className="relative group">
+                      <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                      <input 
+                        type="date" 
+                        value={joiningDate} 
+                        onChange={(e) => setJoiningDate(e.target.value)} 
+                        className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                      />
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Footer buttons */}
+                <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4 pb-2 sm:pb-3">
+                  <button 
+                    type="button" 
+                    onClick={onClose} 
+                    className="py-4 rounded-2xl text-[10.5px] font-extrabold uppercase tracking-widest text-[#475569] hover:text-[#0f172a] hover:bg-white/30 transition-all focus:outline-none"
+                  >
+                    Discard
+                  </button>
+                  <button 
+                    type="submit" 
+                    className="py-4 rounded-2xl text-[10.5px] flex items-center justify-center gap-2 font-extrabold uppercase tracking-[0.18em] bg-[#3D4E3D] text-[#EFE7D2] shadow-lg shadow-[#3D4E3D]/30 hover:brightness-105 transition-all active:scale-97 cursor-pointer"
+                  >
+                    <Save size={14} />
+                    Save Changes
+                  </button>
+                </motion.div>
+              </motion.div>
             </form>
           </motion.div>
         </div>

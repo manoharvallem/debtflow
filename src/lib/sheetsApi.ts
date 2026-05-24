@@ -1,7 +1,7 @@
 import { Debtor, Transaction, WorkflowEntry } from '../types';
 
-const WEB_APP_URL = import.meta.env.VITE_SHEETS_WEB_APP_URL || '';
-const API_TOKEN = import.meta.env.VITE_SHEETS_API_TOKEN || '';
+const WEB_APP_URL = (import.meta as any).env.VITE_SHEETS_WEB_APP_URL || '';
+const API_TOKEN = (import.meta as any).env.VITE_SHEETS_API_TOKEN || '';
 
 export interface SheetData {
   debtors: Debtor[];
@@ -36,6 +36,13 @@ export function readSheetData(): Promise<SheetData> {
     url.searchParams.set('action', 'read');
     url.searchParams.set('callback', callbackName);
     if (API_TOKEN) url.searchParams.set('token', API_TOKEN);
+
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[debtflow] Sheets read URL:', url.toString());
+    } catch (e) {
+      // ignore
+    }
 
     const script = document.createElement('script');
     const cleanup = () => {
@@ -95,27 +102,37 @@ export function postSheetAction(action: SheetAction): Promise<void> {
     token.value = API_TOKEN;
 
     form.append(payload, token);
+
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[debtflow] Sheets post action URL:', form.action, 'payload-preview:', payload.value ? payload.value.slice(0, 200) : '');
+    } catch (e) {
+      // ignore
+    }
     document.body.append(iframe, form);
 
     let submitted = false;
+
+    const cleanup = () => {
+      window.clearTimeout(timeout);
+      iframe.remove();
+      form.remove();
+    };
+
     const timeout = window.setTimeout(() => {
       cleanup();
       reject(new Error('Google Sheets write timed out.'));
     }, 15000);
 
-    const cleanup = () => {
-      window.clearTimeout(timeout);
-      form.remove();
-      iframe.remove();
-    };
-
     iframe.onload = () => {
-      if (!submitted) return;
+      if (!submitted) {
+        submitted = true;
+        return;
+      }
       cleanup();
       resolve();
     };
 
-    submitted = true;
     form.submit();
   });
 }

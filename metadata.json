@@ -1,6 +1,6 @@
 {
   "name": "DebtFlow",
-  "description": "A comprehensive debt management dashboard with bento-grid layout, real-time analytics, and transaction tracking.",
+  "description": "An interactive personal debt recovery manager featuring a gorgeous frosted glassmorphism interface with Google Sheets integration.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["Financial Management", "Data Visualization", "Contact Management"]
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
