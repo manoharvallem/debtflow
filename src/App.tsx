@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Sidebar } from './components/layout/Sidebar';
 import { DebtSplitRadial } from './components/dashboard/DebtSplitRadial';
+import { InteractiveInfographics } from './components/dashboard/InteractiveInfographics';
 import { PriorityDebtors } from './components/dashboard/PriorityDebtors';
 import { DirectoryView } from './components/directory/DirectoryView';
 import { PersonDetailView } from './components/details/PersonDetailView';
@@ -51,6 +52,8 @@ function migrateDebtor(raw: any): Debtor {
     totalDebt,
     amountPaid,
     lastPaymentDate: raw?.lastPaymentDate ? String(raw.lastPaymentDate) : undefined,
+    mobile: raw?.mobile ? String(raw.mobile) : undefined,
+    email: raw?.email ? String(raw.email) : undefined,
     status: raw?.status === 'OVERDUE' || raw?.status === 'CURRENT' || raw?.status === 'PENDING'
       ? raw.status
       : totalDebt > 0 && totalDebt <= amountPaid ? 'CURRENT' : 'PENDING',
@@ -71,7 +74,11 @@ function mergeSheetDebtorsWithLocal(sheetDebtors: Debtor[], localDebtors: Debtor
     ) || Boolean(sheetDebtor.lastStageDate);
 
     if (!localDebtor || sheetHasWorkflowContext) {
-      return sheetDebtor;
+      return {
+        ...sheetDebtor,
+        mobile: sheetDebtor.mobile || localDebtor?.mobile,
+        email: sheetDebtor.email || localDebtor?.email,
+      };
     }
 
     return {
@@ -80,6 +87,8 @@ function mergeSheetDebtorsWithLocal(sheetDebtors: Debtor[], localDebtors: Debtor
       lastStageDate: localDebtor.lastStageDate,
       joiningDate: localDebtor.joiningDate,
       labels: localDebtor.labels,
+      mobile: localDebtor.mobile || sheetDebtor.mobile,
+      email: localDebtor.email || sheetDebtor.email,
     };
   });
 }
@@ -339,7 +348,7 @@ export default function App() {
     setActiveTab('detail');
   };
 
-  const handleAddDebtor = (data: { name: string; initialDebt: number; note: string; referredDate: string; labels: string[] }) => {
+  const handleAddDebtor = (data: { name: string; initialDebt: number; note: string; referredDate: string; labels: string[]; mobile: string; email: string }) => {
     const newDebtor: Debtor = {
       id: `${Date.now()}`,
       name: data.name,
@@ -349,6 +358,8 @@ export default function App() {
       currentStage: 'REFERRED_TO_HR',
       lastStageDate: data.referredDate,
       labels: data.labels,
+      mobile: data.mobile || undefined,
+      email: data.email || undefined,
     };
     setDebtors(prev => [newDebtor, ...prev]);
     syncAction({ type: 'upsertDebtor', debtor: newDebtor });
@@ -381,11 +392,20 @@ export default function App() {
     syncAction({ type: 'upsertWorkflowEntry', workflowEntry: initialWorkflow });
   };
 
-  const handleEditDebtor = (data: { id: string; name: string; totalDebt: number; labels: string[] }) => {
+  const handleEditDebtor = (data: { id: string; name: string; totalDebt: number; labels: string[]; joiningDate?: string; mobile: string; email: string }) => {
     const nextDebtors = debtors.map(debtor => {
       if (debtor.id !== data.id) return debtor;
       const nextStatus = data.totalDebt > 0 && data.totalDebt <= debtor.amountPaid ? 'CURRENT' : debtor.status;
-      return { ...debtor, name: data.name, totalDebt: data.totalDebt, status: nextStatus, labels: data.labels };
+      return {
+        ...debtor,
+        name: data.name,
+        totalDebt: data.totalDebt,
+        status: nextStatus,
+        labels: data.labels,
+        joiningDate: data.joiningDate ?? debtor.joiningDate,
+        mobile: data.mobile || undefined,
+        email: data.email || undefined,
+      };
     });
     const updatedDebtor = nextDebtors.find(d => d.id === data.id) || null;
     setDebtors(nextDebtors);
@@ -456,8 +476,10 @@ export default function App() {
                 totalProfiles={stats.totalProfiles}
                 profilesCompleted={stats.profilesCompleted}
                 profilesRemaining={stats.profilesRemaining}
-                stageCounts={stats.stageCounts}
               />
+            </div>
+            <div className="z-10 shrink-0">
+              <InteractiveInfographics debtors={debtors} onSelectDebtor={handleSelectDebtor} />
             </div>
             <div className="grid grid-cols-1 pb-10">
               <PriorityDebtors debtors={debtors} onViewAll={() => setActiveTab('directory')} onSelectDebtor={handleSelectDebtor} />

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, User, IndianRupee, Tag, Save, Calendar } from 'lucide-react';
+import { X, User, IndianRupee, Tag, Save, Calendar, Phone, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Debtor } from '../../types';
 
@@ -7,7 +7,7 @@ interface EditDebtorModalProps {
   debtor: Debtor | null;
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { id: string; name: string; totalDebt: number; labels: string[]; joiningDate?: string }) => void;
+  onSave: (data: { id: string; name: string; totalDebt: number; labels: string[]; joiningDate?: string; mobile: string; email: string }) => void;
 }
 
 const containerVariants = {
@@ -40,6 +40,8 @@ export const EditDebtorModal: React.FC<EditDebtorModalProps> = ({ debtor, isOpen
   const [totalDebt, setTotalDebt] = useState('');
   const [labels, setLabels] = useState('');
   const [joiningDate, setJoiningDate] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
 
   useEffect(() => {
     if (!debtor) return;
@@ -47,6 +49,8 @@ export const EditDebtorModal: React.FC<EditDebtorModalProps> = ({ debtor, isOpen
     setTotalDebt(String(debtor.totalDebt));
     setLabels(debtor.labels.join(', '));
     setJoiningDate(debtor.joiningDate || '');
+    setMobile(debtor.mobile || '');
+    setEmail(debtor.email || '');
   }, [debtor]);
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -58,6 +62,8 @@ export const EditDebtorModal: React.FC<EditDebtorModalProps> = ({ debtor, isOpen
       totalDebt: parseFloat(totalDebt) || 0,
       labels: labels.split(',').map((label) => label.trim()).filter(Boolean),
       joiningDate: debtor.currentStage === 'OFFER_RELEASED' ? joiningDate || undefined : debtor.joiningDate,
+      mobile,
+      email,
     });
     onClose();
   };
@@ -140,6 +146,37 @@ export const EditDebtorModal: React.FC<EditDebtorModalProps> = ({ debtor, isOpen
                       required 
                       className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
                     />
+                  </div>
+                </motion.div>
+
+                {/* Contact fields */}
+                <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Mobile Number</label>
+                    <div className="relative group">
+                      <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                      <input
+                        type="tel"
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        placeholder="e.g. +91 98xxxxxx10"
+                        className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Email Address</label>
+                    <div className="relative group">
+                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="e.g. name@company.com"
+                        className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all"
+                      />
+                    </div>
                   </div>
                 </motion.div>
 
