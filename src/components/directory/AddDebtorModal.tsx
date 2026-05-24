@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { X, User, IndianRupee, FileText, Calendar, Tag } from 'lucide-react';
+import { X, User, IndianRupee, FileText, Calendar, Tag, Phone, Mail } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { format } from 'date-fns';
 
 interface AddDebtorModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: { name: string; initialDebt: number; note: string; referredDate: string; labels: string[] }) => void;
+  onSave: (data: { name: string; initialDebt: number; note: string; referredDate: string; labels: string[]; mobile: string; email: string }) => void;
 }
 
 const containerVariants = {
@@ -39,6 +39,8 @@ export const AddDebtorModal: React.FC<AddDebtorModalProps> = ({ isOpen, onClose,
   const [initialDebt, setInitialDebt] = useState('');
   const [note, setNote] = useState('');
   const [labels, setLabels] = useState('');
+  const [mobile, setMobile] = useState('');
+  const [email, setEmail] = useState('');
   const [referredDate, setReferredDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,11 +52,15 @@ export const AddDebtorModal: React.FC<AddDebtorModalProps> = ({ isOpen, onClose,
       note,
       referredDate,
       labels: labels.split(',').map((label) => label.trim()).filter(Boolean),
+      mobile,
+      email,
     });
     setName('');
     setInitialDebt('');
     setNote('');
     setLabels('');
+    setMobile('');
+    setEmail('');
     setReferredDate(format(new Date(), 'yyyy-MM-dd'));
     onClose();
   };
@@ -150,6 +156,37 @@ export const AddDebtorModal: React.FC<AddDebtorModalProps> = ({ isOpen, onClose,
                         onChange={(e) => setReferredDate(e.target.value)} 
                         required 
                         className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all" 
+                      />
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Contact fields */}
+                <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Mobile Number</label>
+                    <div className="relative group">
+                      <Phone className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                      <input
+                        type="tel"
+                        placeholder="e.g. +91 98xxxxxx10"
+                        value={mobile}
+                        onChange={(e) => setMobile(e.target.value)}
+                        className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-[0.2em] ml-2">Email Address</label>
+                    <div className="relative group">
+                      <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-[#3D4E3D]" size={16} />
+                      <input
+                        type="email"
+                        placeholder="e.g. name@company.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full pl-13 pr-5 py-4 bg-white/35 rounded-2xl font-bold text-sm outline-none transition-all"
                       />
                     </div>
                   </div>

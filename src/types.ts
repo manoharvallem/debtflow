@@ -36,4 +36,6 @@ export interface Debtor {
   lastStageDate?: string;
   joiningDate?: string;
   labels: string[];
+  mobile?: string;
+  email?: string;
 }

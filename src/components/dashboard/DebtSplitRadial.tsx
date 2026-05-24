@@ -2,8 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { CheckCircle2, TrendingDown, Users, Sparkles } from 'lucide-react';
 import { formatINR, formatINRCompact, cn } from '../../lib/utils';
-import { CandidateStage, Debtor } from '../../types';
-import { CANDIDATE_STAGE_META, CANDIDATE_STAGE_ORDER, getStageProgress } from '../../constants';
+import { Debtor } from '../../types';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 
 interface DebtSplitRadialProps {
@@ -15,7 +14,6 @@ interface DebtSplitRadialProps {
   totalProfiles: number;
   profilesCompleted: number;
   profilesRemaining: number;
-  stageCounts: Record<CandidateStage, number>;
 }
 
 export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({ 
@@ -26,8 +24,7 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
   monthPoints, 
   totalProfiles, 
   profilesCompleted, 
-  profilesRemaining, 
-  stageCounts 
+  profilesRemaining
 }) => {
   const safeTotal = Math.max(collected + remaining, 1);
   const collectedPercent = Math.min(100, Math.max(0, (collected / safeTotal) * 100));
@@ -221,8 +218,8 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
         </div>
       </div>
 
-      {/* Recast bottom stats containing Area Charts & stages list */}
-      <div className="relative z-10 pt-6 grid grid-cols-1 xl:grid-cols-[minmax(280px,1.24fr)_minmax(220px,0.76fr)] gap-5">
+      {/* Recast bottom stats containing Area Chart */}
+      <div className="relative z-10 pt-6">
         
         {/* Continuous area flow chart */}
         <div className="rounded-[26px] bg-white/15 border border-white/40 p-5 shadow-xs backdrop-blur-xl relative">
@@ -282,29 +279,6 @@ export const DebtSplitRadial: React.FC<DebtSplitRadialProps> = ({
             </ResponsiveContainer>
           </div>
         </div>
-
-        {/* Pipeline stage summary breakdown */}
-        <div className="rounded-[26px] bg-white/15 border border-white/40 p-5 shadow-xs backdrop-blur-xl flex flex-col justify-between">
-          <div className="shrink-0 mb-3.5">
-            <h4 className="text-base font-extrabold text-[#0f172a] font-display tracking-tight leading-none select-none">Recruitment Pipeline</h4>
-            <p className="text-[8.5px] uppercase tracking-[0.2em] text-slate-500 font-extrabold mt-1.5 font-sans leading-relaxed">System candidate stage counters</p>
-          </div>
-          <div className="space-y-1.5 scrollbar-thin max-h-[142px] overflow-y-auto pr-0.5">
-            {CANDIDATE_STAGE_ORDER.map(stage => {
-              const meta = CANDIDATE_STAGE_META[stage];
-              return (
-                <div key={stage} className="flex items-center justify-between gap-3 rounded-xl bg-white/40 border border-white/50 px-3.5 py-2.5">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={cn('h-2 w-2 rounded-full shrink-0 shadow-sm', meta.accentClassName)} />
-                    <p className="text-xs font-bold text-slate-800 truncate leading-tight">{meta.label}</p>
-                  </div>
-                  <p className="text-xs font-black text-slate-900 tabular-nums">{stageCounts[stage]}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
       </div>
 
       {/* Floating active candidate auto-scroller comment ticker */}

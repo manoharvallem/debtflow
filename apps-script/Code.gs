@@ -1,8 +1,22 @@
+/**
+ * Sheets Sync Service for DebtFlow & Candidate Tracking Pipeline
+ * 
+ * Config Instructions:
+ * 1. Open your Google Spreadsheet
+ * 2. Extensions > Apps Script
+ * 3. Replace all default content with this script
+ * 4. Update VITE_SHEETS_API_TOKEN as expected or use the PropertiesService configuration.
+ * 5. Click "Save" (disk icon)
+ * 6. "Deploy" > "New deployment" -> Select "Web app"
+ * 7. Execute as: "Me", Who has access: "Anyone"
+ * 8. Authorize permissions & copy the URL!
+ */
+
 const PEOPLE_SHEET = 'People';
 const TRANSACTIONS_SHEET = 'Transactions';
 const WORKFLOW_SHEET = 'Workflow';
 
-const PEOPLE_HEADERS = ['id', 'name', 'totalDebt', 'amountPaid', 'lastPaymentDate', 'status', 'currentStage', 'lastStageDate', 'joiningDate', 'labels'];
+const PEOPLE_HEADERS = ['id', 'name', 'totalDebt', 'amountPaid', 'lastPaymentDate', 'status', 'currentStage', 'lastStageDate', 'joiningDate', 'labels', 'mobile', 'email'];
 const TRANSACTION_HEADERS = ['id', 'debtorId', 'amount', 'type', 'date', 'note'];
 const WORKFLOW_HEADERS = ['id', 'debtorId', 'stage', 'date', 'note', 'joiningDate'];
 
@@ -128,6 +142,7 @@ function upsertRow(sheetName, headers, row) {
   else sheet.appendRow(row);
 }
 
+// Global script lock is handled in doPost. Safe to standard delete row
 function deleteRowById(sheetName, id) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   const row = findRowById(sheet, id);
@@ -166,6 +181,8 @@ function debtorToRow(debtor) {
     String(debtor.lastStageDate || ''),
     String(debtor.joiningDate || ''),
     Array.isArray(debtor.labels) ? debtor.labels.join(', ') : String(debtor.labels || ''),
+    String(debtor.mobile || ''),
+    String(debtor.email || ''),
   ];
 }
 
@@ -203,6 +220,8 @@ function rowToDebtor(row) {
     lastStageDate: row.lastStageDate ? String(row.lastStageDate) : undefined,
     joiningDate: row.joiningDate ? String(row.joiningDate) : undefined,
     labels: row.labels ? String(row.labels).split(',').map(label => label.trim()).filter(Boolean) : [],
+    mobile: row.mobile ? String(row.mobile) : undefined,
+    email: row.email ? String(row.email) : undefined,
   };
 }
 

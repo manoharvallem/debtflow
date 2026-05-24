@@ -1,6 +1,6 @@
 import React from 'react';
 import { Debtor, Transaction, WorkflowEntry } from '../../types';
-import { ArrowLeft, Calendar, CheckCircle2, AlertCircle, ArrowUpCircle, ArrowDownCircle, User, Pencil, Workflow } from 'lucide-react';
+import { ArrowLeft, Calendar, CheckCircle2, AlertCircle, ArrowUpCircle, ArrowDownCircle, User, Pencil, Workflow, Phone, Mail } from 'lucide-react';
 import { cn, formatDateOnly, formatINR } from '../../lib/utils';
 import { motion } from 'motion/react';
 import { format } from 'date-fns';
@@ -80,6 +80,23 @@ export const PersonDetailView: React.FC<PersonDetailViewProps> = ({ debtor, tran
               </div>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-[#0f172a] tracking-tight mb-2 break-words leading-tight">{debtor.name}</h2>
               <p className="text-[9.5px] uppercase tracking-[0.25em] font-extrabold text-slate-400 mb-5">Ledger Port: DF-{debtor.id.slice(-4)}</p>
+
+              {(debtor.mobile || debtor.email) && (
+                <div className="flex flex-col gap-2.5 max-w-sm mx-auto mb-5 p-3.5 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/50 text-left text-xs">
+                  {debtor.mobile && (
+                    <div className="flex items-center gap-2.5 text-slate-800">
+                      <Phone size={14} className="text-[#3D4E3D] shrink-0" />
+                      <span className="font-extrabold tracking-wide tabular-nums">{debtor.mobile}</span>
+                    </div>
+                  )}
+                  {debtor.email && (
+                    <div className="flex items-center gap-2.5 text-slate-800 min-w-0">
+                      <Mail size={14} className="text-[#3D4E3D] shrink-0" />
+                      <span className="font-extrabold truncate select-all break-all">{debtor.email}</span>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {debtor.labels.length > 0 && (
                 <div className="flex flex-wrap justify-center gap-1.5 mb-5">
